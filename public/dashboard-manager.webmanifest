@@ -1,0 +1,17 @@
+{
+  "name": "The Exchange Dashboard Manager",
+  "short_name": "Exchange Manager",
+  "start_url": "/exchange-input.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#05080d",
+  "theme_color": "#05080d",
+  "icons": [
+    {
+      "src": "/exchange-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

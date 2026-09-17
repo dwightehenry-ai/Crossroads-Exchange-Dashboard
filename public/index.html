@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <title>The Exchange Dashboard</title>
+  <link rel="icon" type="image/png" href="/exchange-logo.png?v=20260910-exchange-v49">
+  <link rel="apple-touch-icon" href="/exchange-logo.png?v=20260910-exchange-v49">
+  <link rel="stylesheet" href="/styles.css?v=20260910-exchange-v49">
+  <script src="/app.js?v=20260910-exchange-v49" defer></script>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <div id="dashboardError" class="error-banner" hidden></div>
+
+    <nav class="screen-nav" aria-label="Dashboard screens">
+      <a href="/?screen=all" data-screen-link="all">ALL</a>
+      <a href="/?screen=1" data-screen-link="1">TV 1</a>
+      <a href="/?screen=2" data-screen-link="2">TV 2</a>
+      <a href="/?screen=3" data-screen-link="3">TV 3</a>
+      <a href="/exchange-input.html" class="setup-link" title="Open The Exchange Dashboard Manager">MANAGER</a>
+      <a href="#" id="controllerLink" class="setup-link" title="Open The Exchange Dashboard Control">CONTROL</a>
+    </nav>
+
+    <main id="screens" class="screens" aria-live="polite">
+      <section class="tv-screen tv1" data-screen="1" aria-label="TV 1 Communication and Service Support">
+        <header class="exchange-header">
+          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"><div class="exchange-brand-name">THE EXCHANGE</div></div>
+          <div class="service-kicker">WEDNESDAY NIGHT</div>
+          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+        </header>
+
+        <section class="board-section communication-section communication-board">
+          <div class="section-heading purple"><span>COMMUNICATION</span></div>
+
+          <div id="communicationRoleGrid" class="communication-role-grid">
+            <div class="loading-card">Loading communication assignments…</div>
+          </div>
+
+          <div id="communicationInfoGrid" class="communication-info-grid">
+            <div class="loading-card">Loading service information…</div>
+          </div>
+
+          <div class="communication-wide-grid">
+            <article class="communication-content-card announcements-card">
+              <div class="communication-info-label">ANNOUNCEMENTS</div>
+              <div id="announcementsContent" class="communication-content">Loading announcements…</div>
+            </article>
+
+            <article class="communication-content-card verse-card">
+              <div class="communication-info-label">VERSE OF THE DAY</div>
+              <div id="verseOfDayContent" class="communication-content verse-content">Loading verse…</div>
+            </article>
+          </div>
+
+        </section>
+
+        <section class="board-section support-section service-support-reserved">
+          <div class="section-heading gold"><span>SERVICE SUPPORT TEAM</span></div>
+          <div id="serviceSupportGrid" class="photo-grid support-grid">
+            <div class="loading-card">Loading service support…</div>
+          </div>
+        </section>
+
+        <footer class="tv-footer">
+          <span data-plan-title>THE EXCHANGE</span>
+          <span data-last-updated>CONNECTING</span>
+        </footer>
+      </section>
+
+      <section class="tv-screen tv2" data-screen="2" aria-label="TV 2 Worship Team and Songs">
+        <header class="exchange-header">
+          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"><div class="exchange-brand-name">THE EXCHANGE</div></div>
+          <div class="service-kicker">WEDNESDAY NIGHT</div>
+          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+        </header>
+
+        <section class="board-section worship-section">
+          <div class="section-heading teal"><span>WORSHIP TEAM</span></div>
+
+          <div id="worshipServiceLeadSection" class="worship-service-lead-section" hidden>
+            <div id="worshipServiceLeadGrid" class="photo-grid worship-service-lead-grid"></div>
+          </div>
+
+          <div class="subheading">VOCALS</div>
+          <div id="vocalsGrid" class="photo-grid vocals-grid">
+            <div class="loading-card">Loading vocals…</div>
+          </div>
+
+          <div class="subheading band-heading">BAND</div>
+          <div id="bandGrid" class="photo-grid band-grid">
+            <div class="loading-card">Loading band…</div>
+          </div>
+        </section>
+
+        <section class="songs-section">
+          <div class="section-heading teal"><span>TONIGHT'S SONGS</span></div>
+          <div id="songsList" class="songs-list">
+            <div class="loading-card">Loading songs…</div>
+          </div>
+        </section>
+
+        <section class="manual-notes-section">
+          <div class="section-heading teal"><span>NOTES</span></div>
+          <div id="manualNotesContent" class="manual-notes-content">
+            <div class="notes-empty-text">No notes entered.</div>
+          </div>
+        </section>
+
+        <footer class="tv-footer">
+          <span data-plan-title>THE EXCHANGE</span>
+          <span data-last-updated>CONNECTING</span>
+        </footer>
+      </section>
+
+      <section class="tv-screen tv3" data-screen="3" aria-label="TV 3 Order of Service">
+        <header class="exchange-header">
+          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"><div class="exchange-brand-name">THE EXCHANGE</div></div>
+          <div class="service-kicker">WEDNESDAY NIGHT</div>
+          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+        </header>
+
+        <section class="board-section order-section">
+          <div class="section-heading blue"><span>ORDER OF SERVICE</span></div>
+          <div id="orderList" class="order-list">
+            <div class="loading-card">Loading service order…</div>
+          </div>
+        </section>
+
+        <footer class="tv-footer">
+          <span data-plan-title>THE EXCHANGE</span>
+          <span data-last-updated>CONNECTING</span>
+        </footer>
+      </section>
+    </main>
+
+    <aside id="debugPanel" class="debug-panel" hidden>
+      <h2>Exchange Dashboard Diagnostics</h2>
+      <div id="debugContent"></div>
+    </aside>
+  </div>
+</body>
+</html>

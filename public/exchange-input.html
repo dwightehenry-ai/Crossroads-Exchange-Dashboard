@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05080d">
+  <title>The Exchange Dashboard Manager</title>
+  <link rel="icon" type="image/png" href="/exchange-logo.png?v=20260910-exchange-v491">
+  <link rel="apple-touch-icon" href="/exchange-logo.png?v=20260910-exchange-v491">
+  <link rel="manifest" href="/dashboard-manager.webmanifest">
+  <link rel="stylesheet" href="/exchange-input.css?v=20260910-exchange-v491">
+  <script src="/exchange-input.js?v=20260910-exchange-v491" defer></script>
+</head>
+<body>
+  <main class="input-shell">
+    <header class="input-header">
+      <div class="brand-lockup">
+        <img src="/exchange-logo.png?v=20260910-exchange-v491" alt="The Exchange logo">
+        <div>
+          <div class="eyebrow">THE EXCHANGE</div>
+          <h1>Dashboard Manager</h1>
+          <p>Choose the Exchange plan used by all three TVs and enter the manual content for that plan.</p>
+        </div>
+      </div>
+      <nav class="input-nav" aria-label="Exchange dashboard manager navigation">
+        <a href="/">Open Dashboard</a>
+        <a href="/setup.html">Technical Setup</a>
+        <a href="#" id="controllerLink">Dashboard Control</a>
+      </nav>
+    </header>
+
+    <div id="accessBanner" class="access-banner" hidden></div>
+
+    <section id="managerUnlock" class="manager-card" hidden>
+      <div class="card-heading">
+        <div>
+          <div class="card-kicker">PHONE ACCESS</div>
+          <h2>Unlock Dashboard Manager</h2>
+          <p>Enter the same PIN used by Exchange Dashboard Control to enable editing from this device.</p>
+        </div>
+      </div>
+      <div class="plan-grid">
+        <label class="field">
+          <span>Dashboard Control PIN</span>
+          <input id="managerPinInput" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8" placeholder="PIN">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="managerUnlockButton" class="primary-button" type="button">Unlock Manager</button>
+      </div>
+      <p id="unlockMessage" class="message" role="status"></p>
+    </section>
+
+    <section class="manager-card plan-card">
+      <div class="card-heading">
+        <div>
+          <div class="card-kicker">PLANNING CENTER</div>
+          <h2>Exchange Service Plan</h2>
+        </div>
+        <div id="activePlanBadge" class="active-plan-badge">LOADING</div>
+      </div>
+
+      <div class="plan-grid">
+        <label class="field">
+          <span>Service Type</span>
+          <select id="serviceTypeSelect" aria-label="Service type">
+            <option value="">Loading The Exchange…</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Service Plan</span>
+          <select id="planSelect" aria-label="Service plan">
+            <option value="">Loading Exchange plans…</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="usePlanButton" class="primary-button" type="button">Use Selected Plan on All TVs</button>
+        <button id="autoPlanButton" class="secondary-button" type="button">Return to Automatic Upcoming Plan</button>
+      </div>
+      <p id="planMessage" class="message" role="status"></p>
+    </section>
+
+    <section class="manager-card manual-card">
+      <div class="card-heading">
+        <div>
+          <div class="card-kicker">MANUAL CONTENT</div>
+          <h2>Communication + Worship Inputs</h2>
+        </div>
+        <div id="editingPlanLabel" class="editing-plan-label">Select a plan</div>
+      </div>
+
+      <form id="manualForm">
+        <div class="manual-grid">
+          <label class="field manual-field">
+            <span>Announcements — TV 1</span>
+            <textarea id="announcementsInput" maxlength="5000" placeholder="Enter one announcement per line."></textarea>
+            <small>Shown in the Announcements section on the Communication TV.</small>
+          </label>
+
+          <label class="field manual-field">
+            <span>Verse of the Day — TV 1</span>
+            <textarea id="verseInput" maxlength="2000" placeholder="Enter the verse reference and verse text."></textarea>
+            <small>Shown in the Verse of the Day section on the Communication TV.</small>
+          </label>
+
+          <label class="field manual-field manual-field-wide">
+            <span>Worship Notes — TV 2</span>
+            <textarea id="worshipNotesInput" maxlength="5000" placeholder="Enter notes to show directly below Tonight's Songs. One note per line works best."></textarea>
+            <small>Shown below Tonight's Songs on the Worship TV.</small>
+          </label>
+        </div>
+
+        <div class="button-row save-row">
+          <button id="saveManualButton" class="primary-button" type="submit">Save Inputs for Selected Plan</button>
+        </div>
+        <p id="manualMessage" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section class="manager-card help-card">
+      <div class="card-kicker">HOW THIS BOARD WORKS</div>
+      <div class="help-grid">
+        <div><strong>1.</strong><span>Select the Exchange service plan.</span></div>
+        <div><strong>2.</strong><span>Click “Use Selected Plan on All TVs” if you want to force that plan onto TV 1, TV 2, and TV 3.</span></div>
+        <div><strong>3.</strong><span>Enter announcements, the Verse of the Day, and worship notes, then save.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

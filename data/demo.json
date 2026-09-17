@@ -1,0 +1,139 @@
+{
+  "header": {
+    "church": "THE EXCHANGE",
+    "subtitle": "STUDENT MINISTRY",
+    "date": "WEDNESDAY",
+    "plan": "THE EXCHANGE",
+    "time": "6:30 PM"
+  },
+  "service": {
+    "current": {
+      "title": "Great Are You Lord",
+      "type": "WORSHIP",
+      "number": 4,
+      "count": 17
+    },
+    "next": {
+      "title": "Prayer",
+      "type": "MESSAGE",
+      "number": 5,
+      "count": 17
+    }
+  },
+  "slides": {
+    "current": {
+      "title": "CURRENT SLIDE",
+      "position": "Slide 3 of 8",
+      "text": "Great are You Lord\nYou give life\nYou are love\nYou bring light to the darkness"
+    },
+    "next": {
+      "title": "NEXT SLIDE",
+      "position": "Slide 4 of 8",
+      "text": "Our hearts will cry\nThese bones will sing\nGreat are You Lord"
+    }
+  },
+  "timers": {
+    "service": "06:42",
+    "item": "03:15",
+    "song": "04:32",
+    "slide": "00:28",
+    "message": "35:18",
+    "countdown": "00:00"
+  },
+  "vocals": [
+    {
+      "name": "John Smith",
+      "role": "Worship Leader",
+      "mic": "1",
+      "pack": "1",
+      "photo": ""
+    },
+    {
+      "name": "Sarah Johnson",
+      "role": "Vocalist",
+      "mic": "2",
+      "pack": "2",
+      "photo": ""
+    },
+    {
+      "name": "Mike Davis",
+      "role": "Vocalist",
+      "mic": "3",
+      "pack": "3",
+      "photo": ""
+    },
+    {
+      "name": "Emily Carter",
+      "role": "Vocalist",
+      "mic": "4",
+      "pack": "4",
+      "photo": ""
+    },
+    {
+      "name": "Chris Taylor",
+      "role": "Vocalist",
+      "mic": "5",
+      "pack": "5",
+      "photo": ""
+    }
+  ],
+  "communications": [
+    {
+      "name": "Dwight Henry",
+      "role": "Host",
+      "mic": "20",
+      "pack": "20",
+      "photo": ""
+    },
+    {
+      "name": "Jane Doe",
+      "role": "Communicator",
+      "mic": "21",
+      "pack": "21",
+      "photo": ""
+    },
+    {
+      "name": "Alex Morgan",
+      "role": "Sermon",
+      "mic": "22",
+      "pack": "22",
+      "photo": ""
+    }
+  ],
+  "band": [
+    {
+      "name": "Chris Moore",
+      "role": "Guitar",
+      "mic": "10",
+      "pack": "10",
+      "photo": ""
+    },
+    {
+      "name": "Emily White",
+      "role": "Bass",
+      "mic": "11",
+      "pack": "11",
+      "photo": ""
+    },
+    {
+      "name": "Daniel Kim",
+      "role": "Keys",
+      "mic": "12",
+      "pack": "12",
+      "photo": ""
+    },
+    {
+      "name": "Austin Lee",
+      "role": "Drums",
+      "mic": "13",
+      "pack": "13",
+      "photo": ""
+    }
+  ],
+  "stream": {
+    "rtmp": "rtmp://10.1.0.50/live/crossroads",
+    "details": "Stream: 1080p \u2022 6.0 Mbps \u2022 29.97 fps",
+    "health": "Good"
+  },
+  "message": "The Exchange dashboard demo mode"
+}

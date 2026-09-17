@@ -1,0 +1,41 @@
+{
+  "port": 3001,
+  "refreshSeconds": 1,
+  "demoMode": false,
+  "planningCenter": {
+    "enabled": true,
+    "applicationId": "YOUR_PLANNING_CENTER_APPLICATION_ID",
+    "secret": "YOUR_PLANNING_CENTER_SECRET",
+    "serviceTypeId": "145138",
+    "serviceTypeName": "Exchange Wednesday Service"
+  },
+  "proPresenter": {
+    "enabled": true,
+    "baseUrl": "http://10.101.100.50:1025",
+    "timeoutMs": 2500
+  },
+  "devices": {
+    "atem": {
+      "enabled": false,
+      "checkType": "tcp",
+      "host": "10.101.100.60",
+      "port": 9910
+    },
+    "audio": {
+      "enabled": false,
+      "checkType": "tcp",
+      "host": "10.101.100.70",
+      "port": 10023
+    },
+    "streamDeck": {
+      "enabled": false,
+      "checkType": "manual"
+    },
+    "etcIon": {
+      "enabled": true,
+      "checkType": "tcp",
+      "host": "10.101.100.101",
+      "port": 3032
+    }
+  }
+}

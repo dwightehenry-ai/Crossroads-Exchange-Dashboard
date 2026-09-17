@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Exchange Technical Setup</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .guest-manager { display: grid; gap: 18px; }
+    .guest-help, .guest-message, .guest-empty { color: #aeb9c8; line-height: 1.45; }
+    .guest-message { min-height: 1.5em; margin: 0; font-weight: 700; }
+    .guest-message.is-error { color: #ff7474; }
+    .guest-message.is-success { color: #58de91; }
+    .guest-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .guest-field { display: grid; gap: 6px; }
+    .guest-field--wide { grid-column: 1 / -1; }
+    .guest-field label, .guest-enabled { color: #dce5ef; font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .guest-field input, .guest-field select, .guest-field textarea { width: 100%; min-height: 42px; box-sizing: border-box; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: #111923; color: #f5f8fb; padding: 9px 11px; font: inherit; }
+    .guest-field textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
+    .guest-enabled { display: flex; align-items: center; gap: 9px; min-height: 42px; }
+    .guest-enabled input { width: 18px; height: 18px; }
+    .guest-actions, .guest-row-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+    .guest-actions button, .guest-row-actions button { min-height: 38px; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; background: #1d2a38; color: #f5f8fb; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer; }
+    .guest-actions button[type="submit"] { background: #16627c; border-color: #42c7f5; }
+    .guest-row-actions .guest-delete { color: #ff8a8a; }
+    .guest-list { display: grid; gap: 10px; }
+    .guest-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; background: rgba(5,12,20,.42); padding: 12px; }
+    .guest-row-name { color: #fff; font-weight: 900; }
+    .guest-row-detail { margin-top: 4px; color: #aeb9c8; font-size: .9rem; }
+    @media (max-width: 700px) {
+      .guest-form-grid, .guest-row { grid-template-columns: 1fr; }
+      .guest-row-actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body class="setup-body">
+  <main class="setup">
+    <h1>The Exchange Technical Setup</h1>
+    <p>Technical controls and special guest setup. For announcements, Verse of the Day, Worship Notes, and the active Exchange service plan, use the <a href="/exchange-input.html">Exchange Dashboard Manager</a>.</p>
+
+    <section class="setup-card">
+      <h2>Special guest sermon communicators</h2>
+      <div class="guest-manager">
+        <p class="guest-help">Add a guest who is not in Planning Center. The guest will appear in Communications only for the selected service plan. C means confirmed and U means unconfirmed.</p>
+
+        <form id="guestForm">
+          <input id="guestId" type="hidden">
+          <div class="guest-form-grid">
+            <div class="guest-field">
+              <label for="guestName">Guest name</label>
+              <input id="guestName" maxlength="100" autocomplete="name" required>
+            </div>
+            <div class="guest-field">
+              <label for="guestRole">Position</label>
+              <input id="guestRole" value="Sermon Communicator" readonly>
+            </div>
+            <div class="guest-field">
+              <label for="guestServiceType">Service type</label>
+              <select id="guestServiceType" required><option value="">Loading service types…</option></select>
+            </div>
+            <div class="guest-field">
+              <label for="guestPlan">Service plan</label>
+              <select id="guestPlan" required><option value="">Select a service type first</option></select>
+            </div>
+            <div class="guest-field guest-field--wide">
+              <label for="guestPhoto">Photo URL or public path</label>
+              <input id="guestPhoto" maxlength="2000" placeholder="https://example.com/photo.jpg or /images/guest.jpg">
+            </div>
+            <div class="guest-field">
+              <label for="guestMic">Mic assignment</label>
+              <input id="guestMic" maxlength="30" placeholder="Example: 3">
+            </div>
+            <div class="guest-field">
+              <label for="guestStatus">Confirmation</label>
+              <select id="guestStatus">
+                <option value="C">C — Confirmed</option>
+                <option value="U">U — Unconfirmed</option>
+              </select>
+            </div>
+            <label class="guest-enabled">
+              <input id="guestEnabled" type="checkbox" checked>
+              Show this guest on the selected plan
+            </label>
+          </div>
+          <div class="guest-actions">
+            <button id="saveGuest" type="submit">Add guest</button>
+            <button id="cancelGuest" type="button" hidden>Cancel edit</button>
+          </div>
+        </form>
+
+        <p id="guestMessage" class="guest-message" role="status"></p>
+        <div id="guestList" class="guest-list"><p class="guest-empty">Loading guests…</p></div>
+      </div>
+    </section>
+
+    <section class="setup-card"><h2>Status overrides</h2><div id="overrideControls"></div></section>
+    <section class="setup-card"><h2>Production message</h2><textarea id="messageInput" rows="4" maxlength="180"></textarea><button id="saveMessage">Save message</button></section>
+    <section class="setup-card"><h2>Test links</h2><p><a href="/" target="_blank">Open dashboard</a></p><p><a href="/api/dashboard" target="_blank">View dashboard JSON</a></p><p><a href="/health" target="_blank">View server health</a></p></section>
+  </main>
+
+  <script src="/setup.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const byId = (id) => document.getElementById(id);
+      const form = byId("guestForm");
+      const serviceTypeSelect = byId("guestServiceType");
+      const planSelect = byId("guestPlan");
+      const message = byId("guestMessage");
+      const guestList = byId("guestList");
+      const saveButton = byId("saveGuest");
+      const cancelButton = byId("cancelGuest");
+      let guests = [];
+      let serviceTypes = [];
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+
+      function setMessage(text, type = "") {
+        message.textContent = text || "";
+        message.className = "guest-message";
+        if (type) message.classList.add(`is-${type}`);
+      }
+
+      async function requestJson(url, options = {}) {
+        const response = await fetch(url, { headers: { "Content-Type": "application/json", ...(options.headers || {}) }, ...options });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || payload.error || `HTTP ${response.status}`);
+        return payload;
+      }
+
+      function selectedOption(select) {
+        return select.options[select.selectedIndex] || null;
+      }
+
+      async function loadServiceTypes(preferredId = "") {
+        const payload = await requestJson("/api/planning-center/service-types");
+        serviceTypes = Array.isArray(payload.serviceTypes) ? payload.serviceTypes : [];
+        serviceTypeSelect.innerHTML = ['<option value="">Select a service type</option>', ...serviceTypes.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`)].join("");
+        const sundayService = serviceTypes.find((item) => /sunday/i.test(item.name || ""));
+        serviceTypeSelect.value = String(preferredId || payload.defaultServiceTypeId || sundayService?.id || serviceTypes[0]?.id || "");
+        await loadPlans();
+      }
+
+      async function loadPlans(preferredPlanId = "") {
+        const serviceTypeId = serviceTypeSelect.value;
+        planSelect.disabled = true;
+        planSelect.innerHTML = serviceTypeId ? '<option value="">Loading plans…</option>' : '<option value="">Select a service type first</option>';
+        if (!serviceTypeId) return;
+        const payload = await requestJson(`/api/planning-center/plans?serviceTypeId=${encodeURIComponent(serviceTypeId)}`);
+        const plans = Array.isArray(payload.plans) ? payload.plans : [];
+        planSelect.innerHTML = ['<option value="">Select a service plan</option>', ...plans.map((plan) => {
+          const label = [plan.title, plan.shortDates || plan.dates].filter(Boolean).join(" — ");
+          return `<option value="${escapeHtml(plan.id)}" data-label="${escapeHtml(label)}">${escapeHtml(label || plan.id)}</option>`;
+        })].join("");
+        planSelect.disabled = false;
+        if (preferredPlanId) planSelect.value = String(preferredPlanId);
+      }
+
+      function resetForm(keepPlan = true) {
+        const serviceTypeId = serviceTypeSelect.value;
+        const planId = planSelect.value;
+        form.reset();
+        byId("guestId").value = "";
+        byId("guestRole").value = "Sermon Communicator";
+        byId("guestStatus").value = "C";
+        byId("guestEnabled").checked = true;
+        if (keepPlan) {
+          serviceTypeSelect.value = serviceTypeId;
+          planSelect.value = planId;
+        }
+        saveButton.textContent = "Add guest";
+        cancelButton.hidden = true;
+      }
+
+      function renderGuests() {
+        if (!guests.length) {
+          guestList.innerHTML = '<p class="guest-empty">No special guests have been added.</p>';
+          return;
+        }
+        guestList.innerHTML = guests.map((guest) => {
+          const detail = ["Sermon Communicator", guest.planLabel || guest.planId || "Selected plan", `Status ${guest.status === "C" ? "C" : "U"}`, guest.micAssignment ? `Mic ${guest.micAssignment}` : "No mic", guest.enabled === false ? "Hidden" : "Shown"].join(" · ");
+          return `<article class="guest-row"><div><div class="guest-row-name">${escapeHtml(guest.name)}</div><div class="guest-row-detail">${escapeHtml(detail)}</div></div><div class="guest-row-actions"><button type="button" data-edit="${escapeHtml(guest.id)}">Edit</button><button class="guest-delete" type="button" data-delete="${escapeHtml(guest.id)}">Remove</button></div></article>`;
+        }).join("");
+      }
+
+      async function loadGuests() {
+        const payload = await requestJson("/api/manual-guests");
+        guests = Array.isArray(payload.guests) ? payload.guests : [];
+        renderGuests();
+      }
+
+      async function editGuest(id) {
+        const guest = guests.find((item) => String(item.id) === String(id));
+        if (!guest) return;
+        byId("guestId").value = guest.id;
+        byId("guestName").value = guest.name || "";
+        byId("guestPhoto").value = guest.photo || "";
+        byId("guestMic").value = guest.micAssignment || "";
+        byId("guestStatus").value = guest.status === "C" ? "C" : "U";
+        byId("guestEnabled").checked = guest.enabled !== false;
+        serviceTypeSelect.value = String(guest.serviceTypeId || "");
+        await loadPlans(guest.planId || "");
+        saveButton.textContent = "Save guest";
+        cancelButton.hidden = false;
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      async function removeGuest(id) {
+        const guest = guests.find((item) => String(item.id) === String(id));
+        if (!guest || !window.confirm(`Remove ${guest.name} from manual guests?`)) return;
+        await requestJson(`/api/manual-guests/${encodeURIComponent(id)}`, { method: "DELETE" });
+        resetForm();
+        await loadGuests();
+        setMessage(`${guest.name} was removed.`, "success");
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setMessage("Saving guest…");
+        try {
+          const id = byId("guestId").value;
+          const selectedServiceType = selectedOption(serviceTypeSelect);
+          const selectedPlan = selectedOption(planSelect);
+          const body = {
+            name: byId("guestName").value,
+            photo: byId("guestPhoto").value,
+            micAssignment: byId("guestMic").value,
+            status: byId("guestStatus").value,
+            enabled: byId("guestEnabled").checked,
+            serviceTypeId: serviceTypeSelect.value,
+            serviceTypeName: selectedServiceType?.textContent || "",
+            planId: planSelect.value,
+            planLabel: selectedPlan?.dataset.label || selectedPlan?.textContent || ""
+          };
+          await requestJson(id ? `/api/manual-guests/${encodeURIComponent(id)}` : "/api/manual-guests", { method: id ? "PUT" : "POST", body: JSON.stringify(body) });
+          const savedName = body.name.trim();
+          resetForm();
+          await loadGuests();
+          setMessage(`${savedName} was saved.`, "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        }
+      });
+
+      serviceTypeSelect.addEventListener("change", () => loadPlans().catch((error) => setMessage(error.message, "error")));
+      cancelButton.addEventListener("click", () => { resetForm(); setMessage(""); });
+      guestList.addEventListener("click", (event) => {
+        const editButton = event.target.closest("[data-edit]");
+        const deleteButton = event.target.closest("[data-delete]");
+        if (editButton) editGuest(editButton.dataset.edit).catch((error) => setMessage(error.message, "error"));
+        if (deleteButton) removeGuest(deleteButton.dataset.delete).catch((error) => setMessage(error.message, "error"));
+      });
+
+      Promise.all([loadServiceTypes(), loadGuests()]).catch((error) => setMessage(error.message, "error"));
+    })();
+  </script>
+
+  
+
+</body>
+</html>

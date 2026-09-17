@@ -1,0 +1,78 @@
+:root {
+  color-scheme: dark;
+  --bg: #05080d;
+  --panel: #0b111a;
+  --panel-2: #101927;
+  --border: rgba(255,255,255,.13);
+  --text: #f4f8fb;
+  --muted: #9cabbc;
+  --cyan: #39d8ff;
+  --purple: #d066ff;
+  --green: #5ee39b;
+  --danger: #ff7f87;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at 20% 0%, #102137 0, #05080d 42%, #030508 100%); color: var(--text); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { padding: clamp(18px, 3vw, 40px); }
+.input-shell { width: min(1180px, 100%); margin: 0 auto; display: grid; gap: 20px; }
+.input-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+.brand-lockup { display: flex; align-items: center; gap: 16px; }
+.brand-lockup img { width: 68px; height: 68px; object-fit: contain; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); }
+.eyebrow, .card-kicker { color: var(--cyan); font-size: .74rem; font-weight: 900; letter-spacing: .16em; }
+h1, h2, p { margin: 0; }
+h1 { margin-top: 3px; font-size: clamp(1.7rem, 3vw, 2.55rem); line-height: 1; }
+h2 { margin-top: 4px; font-size: clamp(1.2rem, 2vw, 1.55rem); }
+.brand-lockup p { margin-top: 8px; max-width: 720px; color: var(--muted); line-height: 1.45; }
+.input-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+.input-nav a { color: var(--text); text-decoration: none; border: 1px solid var(--border); background: rgba(255,255,255,.04); border-radius: 9px; padding: 9px 12px; font-weight: 800; font-size: .86rem; }
+.manager-card { border: 1px solid var(--border); border-radius: 16px; background: linear-gradient(180deg, rgba(16,25,39,.96), rgba(7,12,20,.96)); box-shadow: 0 18px 50px rgba(0,0,0,.24); padding: clamp(18px, 3vw, 28px); }
+.plan-card { border-top: 3px solid var(--cyan); }
+.manual-card { border-top: 3px solid var(--purple); }
+.help-card { border-top: 3px solid rgba(255,255,255,.18); }
+.card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
+.active-plan-badge, .editing-plan-label { max-width: 48%; border: 1px solid rgba(57,216,255,.36); background: rgba(57,216,255,.08); border-radius: 999px; padding: 7px 11px; color: #c9f5ff; font-weight: 900; font-size: .75rem; text-align: right; }
+.plan-grid { display: grid; grid-template-columns: .8fr 1.8fr; gap: 14px; }
+.field { display: grid; gap: 7px; }
+.field > span { font-size: .78rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #dce6f0; }
+.field select, .field textarea { width: 100%; border: 1px solid var(--border); border-radius: 10px; background: #090f18; color: var(--text); font: inherit; outline: none; }
+.field select { min-height: 47px; padding: 8px 12px; }
+.field textarea { min-height: 155px; padding: 12px 13px; resize: vertical; line-height: 1.45; }
+.field select:focus, .field textarea:focus { border-color: rgba(57,216,255,.75); box-shadow: 0 0 0 3px rgba(57,216,255,.08); }
+.field small { color: var(--muted); line-height: 1.35; }
+.manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.manual-field-wide { grid-column: 1 / -1; }
+.manual-field-wide textarea { min-height: 180px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 17px; }
+button { border-radius: 9px; min-height: 44px; padding: 9px 15px; font: inherit; font-weight: 900; cursor: pointer; }
+.primary-button { color: #001019; background: var(--cyan); border: 1px solid #75e7ff; }
+.secondary-button { color: var(--text); background: #151f2d; border: 1px solid var(--border); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.message { min-height: 1.35em; margin-top: 11px; color: var(--muted); font-weight: 750; }
+.message.success { color: var(--green); }
+.message.error { color: var(--danger); }
+.access-banner { border: 1px solid rgba(255,127,135,.42); border-radius: 10px; background: rgba(255,127,135,.08); color: #ffd5d8; padding: 12px 14px; line-height: 1.4; font-weight: 800; }
+.help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 12px; }
+.help-grid > div { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.025); color: var(--muted); line-height: 1.4; }
+.help-grid strong { color: var(--cyan); font-size: 1.15rem; }
+@media (max-width: 800px) {
+  body { padding: 14px; }
+  .input-header, .card-heading { flex-direction: column; }
+  .input-nav { justify-content: flex-start; }
+  .plan-grid, .manual-grid, .help-grid { grid-template-columns: 1fr; }
+  .manual-field-wide { grid-column: auto; }
+  .active-plan-badge, .editing-plan-label { max-width: 100%; text-align: left; }
+}
+
+/* v4.9 phone Dashboard Manager refinements */
+@media (max-width: 520px) {
+  body { padding: max(12px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom)); }
+  .brand-lockup { align-items: flex-start; }
+  .brand-lockup img { width: 54px; height: 54px; flex: 0 0 auto; }
+  .input-nav { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .input-nav a { min-height: 48px; display: grid; place-items: center; text-align: center; }
+  .manager-card { padding: 16px 14px; }
+  .field select { min-height: 52px; font-size: 16px; }
+  .field textarea { font-size: 16px; }
+  .button-row { display: grid; grid-template-columns: 1fr; }
+  button { width: 100%; min-height: 52px; font-size: 1rem; }
+}

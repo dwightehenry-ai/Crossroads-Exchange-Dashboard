@@ -1,0 +1,672 @@
+:root {
+  --bg: #05080d;
+  --panel: #0a0f17;
+  --panel-2: #101722;
+  --text: #f4f7fb;
+  --muted: #8995a6;
+  --line: #233041;
+  --teal: #24e4d1;
+  --purple: #b66cff;
+  --gold: #f4bd45;
+  --blue: #48a8ff;
+  --danger: #ff6577;
+  --radius: 1.125rem;
+  --density: 1;
+  --page-pad: clamp(.85rem, 2.2vmin, 2.4rem);
+  --section-gap: clamp(.6rem, 1.4vmin, 1.25rem);
+  --card-gap: clamp(.45rem, 1vmin, .9rem);
+  --photo-size: clamp(3.4rem, 7.2vmin, 7.5rem);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; min-height: 100%; background: #020408; color: var(--text); }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: calc(16px * var(--density));
+  overflow-x: hidden;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  background: radial-gradient(circle at 50% -10%, #15202e 0, #05080d 42%, #020408 100%);
+}
+
+.screen-nav {
+  position: fixed;
+  z-index: 20;
+  top: max(.75rem, env(safe-area-inset-top));
+  right: max(.75rem, env(safe-area-inset-right));
+  display: flex;
+  gap: .375rem;
+  padding: .375rem;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: rgba(2,4,8,.78);
+  backdrop-filter: blur(12px);
+  opacity: .22;
+  transition: opacity .2s ease;
+}
+.screen-nav:hover, .screen-nav:focus-within { opacity: 1; }
+.screen-nav a {
+  color: #dce5ef;
+  text-decoration: none;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  padding: .45rem .65rem;
+  border-radius: 999px;
+}
+.screen-nav a.active { background: var(--teal); color: #001916; }
+
+.error-banner {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  top: max(.75rem, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(92vw, 56rem);
+  padding: .65rem 1rem;
+  background: #3b1018;
+  border: 1px solid var(--danger);
+  border-radius: .65rem;
+  color: white;
+  font-weight: 700;
+}
+
+/* ALL view is a responsive preview. It becomes 3-up on wide screens,
+   2-up at medium widths, and stacked on tablets/phones. */
+.screens {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(.65rem, 1.25vw, 1.2rem);
+  padding: clamp(.65rem, 1.25vw, 1.2rem);
+  align-items: stretch;
+}
+
+.tv-screen {
+  min-width: 0;
+  min-height: calc(100dvh - 2.4rem);
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad);
+  border: 1px solid #1a2635;
+  border-radius: clamp(1rem, 1.5vw, 1.5rem);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(18,28,40,.72), rgba(5,8,13,.94) 25%),
+    var(--bg);
+  box-shadow: 0 1.5rem 5rem rgba(0,0,0,.5);
+}
+
+/* Single-screen mode is what the TVs/tablets should use. */
+body.screen-single { overflow: hidden; }
+body.screen-single .screens { display: block; padding: 0; width: 100vw; height: 100dvh; min-height: 100dvh; overflow: hidden; }
+body.screen-single .tv-screen {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  padding:
+    max(var(--page-pad), env(safe-area-inset-top))
+    max(var(--page-pad), env(safe-area-inset-right))
+    max(var(--page-pad), env(safe-area-inset-bottom))
+    max(var(--page-pad), env(safe-area-inset-left));
+}
+body.screen-single .tv-screen.is-active { display: flex; }
+body.screen-single .screen-nav { opacity: .05; }
+body.screen-single .screen-nav:hover, body.screen-single .screen-nav:focus-within { opacity: 1; }
+
+.exchange-header { text-align: center; padding-bottom: clamp(.35rem, .9vmin, .8rem); flex: 0 0 auto; }
+.exchange-brand { display: inline-grid; justify-items: center; gap: clamp(.18rem, .45vmin, .35rem); }
+.exchange-logo-image {
+  width: clamp(3.8rem, 8.2vmin, 6.8rem);
+  height: clamp(3.8rem, 8.2vmin, 6.8rem);
+  display: block;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.16);
+  filter: drop-shadow(0 .35rem .8rem rgba(0,0,0,.35));
+}
+.exchange-brand-name {
+  font-size: clamp(.72rem, 1.25vmin, 1.02rem);
+  font-weight: 950;
+  letter-spacing: .22em;
+  line-height: 1;
+}
+.service-kicker {
+  margin-top: clamp(.45rem, 1.2vmin, .9rem);
+  color: var(--teal);
+  font-weight: 900;
+  font-size: clamp(.7rem, 1.45vmin, 1.15rem);
+  letter-spacing: .22em;
+}
+.service-date {
+  margin-top: .4rem;
+  font-size: clamp(.67rem, 1.3vmin, 1.05rem);
+  color: #d3dce7;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.board-section, .songs-section { margin-top: var(--section-gap); min-width: 0; }
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: clamp(.5rem, 1.2vmin, .9rem);
+  margin-bottom: clamp(.45rem, 1.2vmin, 1rem);
+  font-weight: 900;
+  font-size: clamp(.95rem, 2vmin, 1.65rem);
+  letter-spacing: .09em;
+  line-height: 1;
+}
+.section-heading::after { content: ""; height: 2px; flex: 1; background: currentColor; opacity: .65; }
+.section-heading.purple { color: var(--purple); }
+.section-heading.gold { color: var(--gold); }
+.section-heading.teal { color: var(--teal); }
+.section-heading.blue { color: var(--blue); }
+.subheading {
+  margin: clamp(.4rem, 1vmin, .75rem) 0 clamp(.4rem, 1vmin, .75rem);
+  color: var(--teal);
+  font-weight: 900;
+  letter-spacing: .13em;
+  font-size: clamp(.78rem, 1.6vmin, 1.25rem);
+  line-height: 1;
+}
+.band-heading { margin-top: clamp(.55rem, 1.35vmin, 1.1rem); }
+
+.photo-grid { display: grid; gap: var(--card-gap); min-width: 0; }
+.communication-grid,
+.support-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+.worship-service-lead-section { margin: 0 0 clamp(.45rem, 1.2vmin, .9rem); }
+.worship-service-lead-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--card-gap);
+}
+.worship-service-lead-grid .person-card {
+  width: min(100%, var(--matched-vocal-width, 22rem));
+  min-height: var(--matched-vocal-height, clamp(4.4rem, 9vmin, 6.5rem));
+}
+.vocals-grid {
+  grid-template-columns: repeat(var(--vocal-cols, 4), minmax(0, 1fr));
+}
+.worship-service-lead-grid .person-card,
+.vocals-grid .person-card {
+  min-height: clamp(4.4rem, 9vmin, 6.5rem);
+}
+.band-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.person-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--photo-size) minmax(0,1fr);
+  gap: clamp(.45rem, 1.15vmin, .9rem);
+  align-items: center;
+  padding: clamp(.42rem, 1vmin, .75rem);
+  border: 1px solid #223043;
+  border-radius: clamp(.65rem, 1.2vmin, .95rem);
+  background: linear-gradient(145deg, rgba(20,30,44,.95), rgba(8,13,20,.92));
+}
+.person-photo-wrap {
+  width: var(--photo-size);
+  height: var(--photo-size);
+  border-radius: clamp(.55rem, 1vmin, .8rem);
+  overflow: hidden;
+  background: #121b28;
+  border: 2px solid var(--accent, var(--teal));
+  display: grid;
+  place-items: center;
+}
+.person-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.person-initials { font-size: clamp(1rem, 2.4vmin, 1.8rem); font-weight: 900; color: #cbd7e4; }
+.person-role {
+  color: var(--accent, var(--teal));
+  font-size: clamp(.58rem, 1.08vmin, .82rem);
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+.person-name {
+  margin-top: clamp(.2rem, .55vmin, .4rem);
+  font-size: clamp(.78rem, 1.75vmin, 1.38rem);
+  line-height: 1.04;
+  font-weight: 900;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.person-name.name-long, .comm-person-name.name-long { font-size: clamp(.7rem, 1.45vmin, 1.12rem); }
+.person-name.name-xlong, .comm-person-name.name-xlong { font-size: clamp(.62rem, 1.2vmin, .96rem); }
+.person-status {
+  margin-top: clamp(.2rem, .55vmin, .4rem);
+  color: var(--muted);
+  font-size: clamp(.55rem, .95vmin, .75rem);
+  font-weight: 800;
+}
+.communication-section .person-card { --accent: var(--purple); }
+.support-section .person-card { --accent: var(--gold); }
+.worship-section .person-card { --accent: var(--teal); }
+
+
+/* TV1 communication board: fixed service-flow slots plus service details. */
+.communication-board { min-height: 0; }
+.communication-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap);
+}
+.communication-role-card,
+.communication-info-card,
+.communication-content-card {
+  min-width: 0;
+  border: 1px solid #2a2440;
+  border-radius: clamp(.6rem, 1.05vmin, .85rem);
+  background: linear-gradient(145deg, rgba(30,23,45,.9), rgba(9,12,18,.94));
+}
+.communication-role-card {
+  display: grid;
+  grid-template-columns: minmax(6.4rem, .68fr) minmax(0, 1.32fr);
+  align-items: stretch;
+  min-height: clamp(3.25rem, 6.2vmin, 4.8rem);
+  overflow: hidden;
+}
+.communication-role-label,
+.communication-info-label {
+  color: var(--purple);
+  font-size: clamp(.54rem, .88vmin, .72rem);
+  font-weight: 950;
+  letter-spacing: .1em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+.communication-role-label {
+  display: flex;
+  align-items: center;
+  padding: clamp(.34rem, .7vmin, .55rem);
+  border-right: 1px solid rgba(182,108,255,.22);
+  background: rgba(182,108,255,.08);
+}
+.communication-role-people {
+  display: grid;
+  align-content: center;
+  gap: .25rem;
+  padding: clamp(.26rem, .6vmin, .45rem);
+}
+.comm-person {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: clamp(2rem, 4.2vmin, 3rem) minmax(0, 1fr);
+  gap: clamp(.35rem, .7vmin, .55rem);
+  align-items: center;
+}
+.comm-person-photo-wrap {
+  width: clamp(2rem, 4.2vmin, 3rem);
+  height: clamp(2rem, 4.2vmin, 3rem);
+  border-radius: .55rem;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--purple);
+  background: #151124;
+}
+.comm-person-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.comm-person-initials { font-size: clamp(.75rem, 1.35vmin, 1rem); font-weight: 950; color: #e2d5f2; }
+.comm-person-copy { min-width: 0; }
+.comm-person-name { font-size: clamp(.65rem, 1.15vmin, .95rem); line-height: 1.04; font-weight: 950; text-transform: uppercase; overflow-wrap: anywhere; }
+.comm-person-status { margin-top: .16rem; color: var(--muted); font-size: clamp(.48rem, .75vmin, .62rem); font-weight: 800; }
+.communication-unassigned { color: #687386; font-size: clamp(.62rem, 1.05vmin, .8rem); font-weight: 850; letter-spacing: .08em; }
+.communication-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--card-gap);
+  margin-top: var(--card-gap);
+}
+.communication-info-card { padding: clamp(.5rem, 1vmin, .8rem); }
+.communication-info-value {
+  margin-top: .28rem;
+  color: #f2edf8;
+  font-size: clamp(.82rem, 1.7vmin, 1.38rem);
+  line-height: 1.08;
+  font-weight: 900;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.communication-wide-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr);
+  gap: var(--card-gap);
+  margin-top: var(--card-gap);
+}
+.communication-content-card { padding: clamp(.5rem, 1vmin, .8rem); }
+.communication-content {
+  margin-top: .35rem;
+  color: #e9edf3;
+  font-size: clamp(.68rem, 1.28vmin, 1rem);
+  line-height: 1.25;
+  font-weight: 750;
+}
+.communication-content ul { margin: .15rem 0 0; padding-left: 1.15rem; }
+.communication-content li + li { margin-top: .16rem; }
+.verse-content { font-size: clamp(.74rem, 1.4vmin, 1.12rem); font-weight: 850; }
+.communication-empty-text { color: var(--muted); }
+.communication-subheading { color: var(--purple); }
+.service-support-reserved { margin-top: clamp(.55rem, 1.2vmin, 1rem); }
+.service-support-reserved .support-grid { min-height: clamp(6rem, 12vmin, 9rem); }
+.tv1 .communication-section { flex: 0 1 auto; }
+.tv1 .support-section { flex: 1 1 auto; min-height: clamp(8rem, 18vmin, 13rem); }
+.tv1 .support-grid { align-content: start; }
+
+.songs-list { display: grid; gap: clamp(.3rem, .75vmin, .55rem); }
+.song-row {
+  display: grid;
+  grid-template-columns: clamp(1.8rem, 4vmin, 2.8rem) minmax(0,1fr) auto;
+  gap: clamp(.4rem, 1vmin, .8rem);
+  align-items: center;
+  padding: clamp(.38rem, .9vmin, .7rem) clamp(.5rem, 1.1vmin, .85rem);
+  border: 1px solid #203043;
+  border-radius: clamp(.55rem, 1vmin, .75rem);
+  background: rgba(14,22,32,.72);
+}
+.song-number { font-size: clamp(1rem, 2.4vmin, 1.55rem); color: var(--teal); font-weight: 950; }
+.song-copy { min-width: 0; }
+.song-title { font-size: clamp(.8rem, 1.75vmin, 1.4rem); font-weight: 900; text-transform: uppercase; line-height: 1.05; }
+.song-singers { margin-top: .2rem; color: #b9c6d5; font-size: clamp(.55rem, .95vmin, .75rem); font-weight: 850; letter-spacing: .04em; line-height: 1.15; overflow-wrap: anywhere; }
+.song-key { color: var(--teal); font-weight: 850; font-size: clamp(.58rem, 1.05vmin, .8rem); white-space: nowrap; }
+
+.order-list { display: grid; gap: clamp(.2rem, .55vmin, .45rem); min-height: 0; }
+.order-row {
+  display: grid;
+  grid-template-columns: clamp(1.7rem, 4vmin, 2.5rem) minmax(0,1fr);
+  gap: clamp(.45rem, 1vmin, .8rem);
+  align-items: center;
+  padding: clamp(.42rem, 1vmin, .82rem) clamp(.45rem, 1vmin, .75rem);
+  border-bottom: 1px solid #1c2a3c;
+}
+.order-icon {
+  width: clamp(1.6rem, 3.8vmin, 2.3rem);
+  height: clamp(1.6rem, 3.8vmin, 2.3rem);
+  border-radius: clamp(.4rem, .8vmin, .6rem);
+  display: grid;
+  place-items: center;
+  color: var(--blue);
+  background: rgba(72,168,255,.1);
+  font-size: clamp(.8rem, 1.8vmin, 1.2rem);
+  font-weight: 900;
+}
+.order-copy { min-width: 0; }
+.order-label { font-size: clamp(.8rem, 1.8vmin, 1.5rem); font-weight: 850; line-height: 1.04; text-transform: uppercase; overflow-wrap: anywhere; }
+.order-subheading { margin-top: .22rem; color: #a8cceb; font-size: clamp(.58rem, 1.08vmin, .84rem); font-weight: 800; letter-spacing: .035em; line-height: 1.18; overflow-wrap: anywhere; }
+.order-song-row .order-subheading { color: var(--teal); }
+.order-announcements .order-subheading { color: #d7c9e5; }
+.order-game .order-subheading { color: var(--gold); }
+
+.loading-card, .empty-card {
+  grid-column: 1 / -1;
+  min-height: clamp(3rem, 8vmin, 4.5rem);
+  display: grid;
+  place-items: center;
+  padding: .9rem;
+  border: 1px dashed #2d3a4a;
+  border-radius: .8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tv-footer {
+  margin-top: auto;
+  padding-top: clamp(.45rem, 1.2vmin, 1.1rem);
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  color: #657386;
+  font-size: clamp(.5rem, .85vmin, .7rem);
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  flex: 0 0 auto;
+}
+
+.debug-panel { margin: 0 1rem 1rem; padding: 1rem; background: #0d131c; border: 1px solid #26374b; border-radius: .9rem; color: #dce5ef; overflow-x: auto; }
+.debug-panel h2 { margin-top: 0; }
+.debug-table { width: 100%; border-collapse: collapse; font-size: .75rem; }
+.debug-table th, .debug-table td { border-bottom: 1px solid #26374b; padding: .45rem; text-align: left; vertical-align: top; }
+.debug-table th { color: var(--teal); }
+
+/* Portrait tablets: prioritize readable cards and let grids reflow instead of
+   squeezing five tiny cards across the screen. Auto-fit still reduces overall
+   density if needed in single-screen mode. */
+@media (orientation: portrait) and (max-width: 1100px) {
+  :root {
+    --page-pad: clamp(.75rem, 2.2vw, 1.5rem);
+    --photo-size: clamp(3.25rem, 10vw, 5.5rem);
+  }
+  .vocals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .communication-grid, .support-grid, .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .communication-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .communication-info-grid, .communication-wide-grid { grid-template-columns: 1fr; }
+  body.screen-single .exchange-logo-image { width: clamp(4rem, 14vw, 6rem); height: clamp(4rem, 14vw, 6rem); }
+}
+
+/* ALL preview: 2 columns on midsize laptop/tablet landscape. */
+@media (max-width: 1450px) and (min-width: 861px) {
+  body:not(.screen-single) .screens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body:not(.screen-single) .tv-screen { min-height: 48rem; }
+}
+
+/* Phones/small tablets: stacked preview and compact single-screen cards. */
+@media (max-width: 860px) {
+  body:not(.screen-single) .screens { grid-template-columns: 1fr; }
+  body:not(.screen-single) .tv-screen { min-height: auto; }
+  .screen-nav { opacity: .55; }
+}
+
+@media (max-width: 620px) {
+  :root {
+    --page-pad: .7rem;
+    --card-gap: .4rem;
+    --photo-size: 3.4rem;
+  }
+  .communication-grid, .support-grid, .band-grid { grid-template-columns: 1fr; }
+  .communication-role-grid, .communication-info-grid, .communication-wide-grid { grid-template-columns: 1fr; }
+  .communication-role-card { grid-template-columns: minmax(7rem, .75fr) minmax(0, 1.25fr); }
+  .vocals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .person-card { grid-template-columns: var(--photo-size) minmax(0,1fr); }
+  .screen-nav { display: none; }
+  .song-row { grid-template-columns: 1.7rem minmax(0,1fr); }
+  .song-key { grid-column: 2; justify-self: start; }
+  .tv-footer { letter-spacing: .05em; }
+}
+
+/* Very short landscape screens (small tablets, browser windows, TV control
+   previews). These rules reduce vertical chrome before the JS auto-fit runs. */
+@media (orientation: landscape) and (max-height: 700px) {
+  :root {
+    --page-pad: clamp(.5rem, 1.4vmin, .9rem);
+    --section-gap: clamp(.35rem, .8vmin, .6rem);
+    --card-gap: clamp(.28rem, .65vmin, .45rem);
+    --photo-size: clamp(2.8rem, 7vmin, 4.6rem);
+  }
+  .exchange-header { padding-bottom: .3rem; }
+  .service-kicker { margin-top: .3rem; }
+  .service-date { margin-top: .2rem; }
+  .band-heading { margin-top: .45rem; }
+  .tv-footer { padding-top: .35rem; }
+}
+
+/* 4K / very large TV treatment. CSS pixels often remain 1920x1080, but when
+   the browser exposes a genuinely large viewport this prevents the board from
+   looking undersized. */
+@media (min-width: 2200px) and (min-height: 1200px) {
+  :root {
+    --page-pad: clamp(2rem, 2.3vmin, 3.6rem);
+    --photo-size: clamp(7rem, 8vmin, 10rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+
+/* Exchange v4.3 density corrections based on 3-up ALL view testing. */
+body.screen-all {
+  --page-pad: clamp(.55rem, .9vw, .85rem);
+  --section-gap: clamp(.35rem, .65vw, .6rem);
+  --card-gap: clamp(.28rem, .5vw, .45rem);
+  --photo-size: clamp(2rem, 3.15vw, 3.35rem);
+}
+
+body.screen-all .exchange-logo-image { width: clamp(2.7rem, 4vw, 3.6rem); height: clamp(2.7rem, 4vw, 3.6rem); }
+body.screen-all .exchange-brand-name { font-size: clamp(.52rem, .72vw, .7rem); }
+body.screen-all .service-kicker { margin-top: .22rem; font-size: clamp(.52rem, .78vw, .72rem); }
+body.screen-all .service-date { margin-top: .2rem; font-size: clamp(.5rem, .68vw, .66rem); }
+body.screen-all .section-heading { margin-bottom: .35rem; font-size: clamp(.72rem, 1.05vw, 1rem); }
+body.screen-all .subheading { margin: .3rem 0; font-size: clamp(.62rem, .86vw, .8rem); }
+
+/* Communication: keep role tiles shallow and names readable in ALL view. */
+body.screen-all .communication-role-grid { gap: .3rem; }
+body.screen-all .communication-role-card {
+  grid-template-columns: minmax(3.7rem, .62fr) minmax(0, 1.38fr);
+  min-height: 2.75rem;
+}
+body.screen-all .communication-role-label,
+body.screen-all .communication-info-label { font-size: clamp(.42rem, .56vw, .54rem); padding: .24rem; letter-spacing: .055em; }
+body.screen-all .communication-role-people { padding: .2rem .25rem; gap: .12rem; }
+body.screen-all .comm-person { grid-template-columns: 1.7rem minmax(0,1fr); gap: .25rem; }
+body.screen-all .comm-person-photo-wrap { width: 1.7rem; height: 1.7rem; border-radius: .34rem; }
+body.screen-all .comm-person-name,
+body.screen-all .comm-person-name.name-long,
+body.screen-all .comm-person-name.name-xlong { font-size: clamp(.48rem, .67vw, .64rem); line-height: 1.02; overflow-wrap: normal; word-break: normal; }
+body.screen-all .comm-person-status { font-size: clamp(.38rem, .48vw, .46rem); margin-top: .06rem; }
+body.screen-all .communication-info-card,
+body.screen-all .communication-content-card { padding: .3rem .4rem; }
+body.screen-all .communication-info-value { font-size: clamp(.56rem, .76vw, .72rem); }
+body.screen-all .communication-content,
+body.screen-all .verse-content { font-size: clamp(.5rem, .66vw, .64rem); line-height: 1.12; }
+body.screen-all .service-support-reserved { margin-top: .35rem; }
+body.screen-all .service-support-reserved .support-grid { min-height: 3.4rem; }
+
+/* Worship: shallower cards and prevent vertical-looking names. */
+body.screen-all .worship-service-lead-section { margin-bottom: .3rem; }
+body.screen-all .worship-service-lead-grid .person-card,
+body.screen-all .vocals-grid .person-card { min-height: 3.25rem; }
+body.screen-all .person-card {
+  grid-template-columns: var(--photo-size) minmax(0,1fr);
+  gap: .3rem;
+  padding: .28rem;
+  min-height: 3.2rem;
+}
+body.screen-all .person-role { font-size: clamp(.4rem, .52vw, .5rem); letter-spacing: .045em; }
+body.screen-all .person-name,
+body.screen-all .person-name.name-long,
+body.screen-all .person-name.name-xlong { font-size: clamp(.52rem, .72vw, .68rem); line-height: 1.02; overflow-wrap: normal; word-break: normal; hyphens: none; }
+body.screen-all .person-status { font-size: clamp(.38rem, .48vw, .46rem); margin-top: .08rem; }
+body.screen-all .band-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body.screen-all .band-grid .person-name,
+body.screen-all .band-grid .person-name.name-long,
+body.screen-all .band-grid .person-name.name-xlong { font-size: clamp(.46rem, .62vw, .6rem); }
+
+body.screen-all .song-row { padding: .25rem .32rem; grid-template-columns: 1.35rem minmax(0,1fr) auto; gap: .28rem; }
+body.screen-all .song-number { font-size: .8rem; }
+body.screen-all .song-title { font-size: clamp(.56rem, .76vw, .72rem); }
+body.screen-all .song-singers, body.screen-all .song-key { font-size: clamp(.42rem, .54vw, .52rem); }
+
+.manual-notes-section { margin-top: var(--section-gap); }
+.manual-notes-content {
+  min-height: clamp(2.8rem, 7vmin, 5.5rem);
+  padding: clamp(.45rem, .9vmin, .7rem);
+  border: 1px solid #203043;
+  border-radius: clamp(.55rem, 1vmin, .75rem);
+  background: rgba(14,22,32,.72);
+  color: #d9e2ec;
+  font-size: clamp(.65rem, 1.1vmin, .9rem);
+  font-weight: 750;
+  line-height: 1.25;
+}
+.manual-notes-content ul { margin: 0; padding-left: 1.15rem; }
+.manual-notes-content li + li { margin-top: .18rem; }
+.notes-empty-text { color: var(--muted); }
+body.screen-all .manual-notes-section { margin-top: .35rem; }
+body.screen-all .manual-notes-content { min-height: 2.2rem; padding: .3rem .4rem; font-size: clamp(.46rem, .62vw, .58rem); }
+
+/* Single TV view remains larger but trims worship tile height somewhat. */
+body.screen-single .worship-service-lead-grid .person-card,
+body.screen-single .vocals-grid .person-card { min-height: clamp(3.8rem, 7.5vmin, 5.6rem); }
+body.screen-single .band-grid .person-name { font-size: clamp(.72rem, 1.45vmin, 1.08rem); }
+
+
+/* v4.3.0 final ALL-view corrections from the 3-TV control-screen photo. */
+body.screen-single .setup-link { display: none; }
+body.screen-all .comm-person { grid-template-columns: 1.15rem minmax(0,1fr); gap: .18rem; }
+body.screen-all .comm-person-photo-wrap { width: 1.15rem; height: 1.15rem; border-radius: .24rem; }
+body.screen-all .comm-person-status { display: none; }
+body.screen-all .communication-role-card { min-height: 2.25rem; }
+body.screen-all .communication-role-people { gap: .08rem; padding: .14rem .2rem; }
+body.screen-all .comm-person-name,
+body.screen-all .comm-person-name.name-long,
+body.screen-all .comm-person-name.name-xlong { font-size: clamp(.41rem, .54vw, .52rem); line-height: 1.05; }
+
+body.screen-all .vocals-grid .person-card,
+body.screen-all .worship-service-lead-grid .person-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 0;
+  gap: .08rem;
+  padding: .18rem .12rem;
+  text-align: center;
+}
+body.screen-all .vocals-grid .person-photo-wrap,
+body.screen-all .worship-service-lead-grid .person-photo-wrap { width: 1.85rem; height: 1.85rem; border-width: 1px; }
+body.screen-all .vocals-grid .person-copy,
+body.screen-all .worship-service-lead-grid .person-copy { width: 100%; min-width: 0; }
+body.screen-all .vocals-grid .person-role,
+body.screen-all .worship-service-lead-grid .person-role { font-size: .36rem; line-height: 1; letter-spacing: .025em; }
+body.screen-all .vocals-grid .person-name,
+body.screen-all .vocals-grid .person-name.name-long,
+body.screen-all .vocals-grid .person-name.name-xlong,
+body.screen-all .worship-service-lead-grid .person-name,
+body.screen-all .worship-service-lead-grid .person-name.name-long,
+body.screen-all .worship-service-lead-grid .person-name.name-xlong {
+  margin-top: .04rem;
+  font-size: clamp(.42rem, .55vw, .54rem);
+  line-height: 1.08;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+body.screen-all .vocals-grid .person-status,
+body.screen-all .worship-service-lead-grid .person-status { display: none; }
+
+body.screen-all .band-grid .person-card { grid-template-columns: 2.05rem minmax(0,1fr); gap: .22rem; padding: .22rem; min-height: 0; }
+body.screen-all .band-grid .person-photo-wrap { width: 2.05rem; height: 2.05rem; border-width: 1px; }
+body.screen-all .band-grid .person-name,
+body.screen-all .band-grid .person-name.name-long,
+body.screen-all .band-grid .person-name.name-xlong { font-size: clamp(.42rem, .55vw, .54rem); line-height: 1.05; }
+body.screen-all .band-grid .person-status { display: none; }
+
+
+/* v4.8: keep dashboard controls reachable from the ALL dashboard on phones,
+   while leaving dedicated TV1/TV2/TV3 displays free of control chrome. */
+@media (max-width: 620px) {
+  body.screen-all .screen-nav {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: calc(100vw - 1.4rem);
+    justify-content: flex-end;
+  }
+  body.screen-all .screen-nav a {
+    font-size: .58rem;
+    padding: .38rem .5rem;
+  }
+}
