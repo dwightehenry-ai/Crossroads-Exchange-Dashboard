@@ -234,11 +234,29 @@ function readJson(filePath) {
 }
 
 function loadConfig() {
-  const fs.existsSync(CONFIG_PATH)
+  const config = fs.existsSync(CONFIG_PATH)
     ? readJson(CONFIG_PATH)
     : readJson(EXAMPLE_CONFIG_PATH);
-}
 
+  config.planningCenter = config.planningCenter || {};
+
+  if (process.env.PCO_APPLICATION_ID) {
+    config.planningCenter.applicationId =
+      process.env.PCO_APPLICATION_ID.trim();
+  }
+
+  if (process.env.PCO_SECRET) {
+    config.planningCenter.secret =
+      process.env.PCO_SECRET.trim();
+  }
+
+  if (process.env.PCO_ENABLED) {
+    config.planningCenter.enabled =
+      process.env.PCO_ENABLED.toLowerCase() === "true";
+  }
+
+  return config;
+}
 function loadDemo() {
   return readJson(DEMO_PATH);
 }
