@@ -234,7 +234,7 @@ function readJson(filePath) {
 }
 
 function loadConfig() {
-  return fs.existsSync(CONFIG_PATH)
+  const fs.existsSync(CONFIG_PATH)
     ? readJson(CONFIG_PATH)
     : readJson(EXAMPLE_CONFIG_PATH);
 }
