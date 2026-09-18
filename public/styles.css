@@ -126,12 +126,9 @@ body.screen-single .screen-nav:hover, body.screen-single .screen-nav:focus-withi
 .exchange-header { text-align: center; padding-bottom: clamp(.35rem, .9vmin, .8rem); flex: 0 0 auto; }
 .exchange-brand { display: inline-grid; justify-items: center; gap: clamp(.18rem, .45vmin, .35rem); }
 .exchange-logo-image {
-  width: clamp(3.8rem, 8.2vmin, 6.8rem);
-  height: clamp(3.8rem, 8.2vmin, 6.8rem);
-  display: block;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.16);
-  filter: drop-shadow(0 .35rem .8rem rgba(0,0,0,.35));
+  width: clamp(5rem, 10vmin, 8rem);
+  height: auto;
+  object-fit: contain;
 }
 .exchange-brand-name {
   font-size: clamp(.72rem, 1.25vmin, 1.02rem);
@@ -455,7 +452,9 @@ body.screen-single .screen-nav:hover, body.screen-single .screen-nav:focus-withi
   .communication-grid, .support-grid, .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .communication-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .communication-info-grid, .communication-wide-grid { grid-template-columns: 1fr; }
-  body.screen-single .exchange-logo-image { width: clamp(4rem, 14vw, 6rem); height: clamp(4rem, 14vw, 6rem); }
+  body.screen-single .exchange-logo-image {
+  width: clamp(5rem, 14vw, 8rem);
+  height: auto;
 }
 
 /* ALL preview: 2 columns on midsize laptop/tablet landscape. */
