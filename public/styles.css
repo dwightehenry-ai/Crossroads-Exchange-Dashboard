@@ -126,7 +126,7 @@ body.screen-single .screen-nav:hover, body.screen-single .screen-nav:focus-withi
 .exchange-header { text-align: center; padding-bottom: clamp(.35rem, .9vmin, .8rem); flex: 0 0 auto; }
 .exchange-brand { display: inline-grid; justify-items: center; gap: clamp(.18rem, .45vmin, .35rem); }
 .exchange-logo-image {
-  width: clamp(5rem, 10vmin, 8rem);
+  width: clamp(10rem, 20vmin, 16rem);
   height: auto;
   object-fit: contain;
 }
@@ -525,7 +525,10 @@ body.screen-all {
   --photo-size: clamp(2rem, 3.15vw, 3.35rem);
 }
 
-body.screen-all .exchange-logo-image { width: clamp(2.7rem, 4vw, 3.6rem); height: clamp(2.7rem, 4vw, 3.6rem); }
+body.screen-all .exchange-logo-image {
+  width: clamp(5.4rem, 8vw, 7.2rem);
+  height: auto;
+}
 body.screen-all .exchange-brand-name { font-size: clamp(.52rem, .72vw, .7rem); }
 body.screen-all .service-kicker { margin-top: .22rem; font-size: clamp(.52rem, .78vw, .72rem); }
 body.screen-all .service-date { margin-top: .2rem; font-size: clamp(.5rem, .68vw, .66rem); }
