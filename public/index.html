@@ -3,140 +3,167 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#080b10">
-  <title>The Exchange Dashboard</title>
-  <link rel="icon" type="image/png" href="/exchange-logo.png?v=20260910-exchange-v49">
-  <link rel="apple-touch-icon" href="/exchange-logo.png?v=20260910-exchange-v49">
-  <link rel="stylesheet" href="/styles.css?v=20260910-exchange-v49">
-  <script src="/app.js?v=20260910-exchange-v49" defer></script>
+  <meta name="theme-color" content="#16171C">
+  <title>The Exchange — Claude design</title>
+  <link rel="icon" type="image/png" href="/exchange-logo.png?v=claude-1">
+  <link rel="apple-touch-icon" href="/exchange-logo.png?v=claude-1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/claude.css?v=claude-1">
+  <!-- Same data engine as the original dashboard: /app.js reads /api/dashboard,
+       which uses the Planning Center connection configured on Render. -->
+  <script src="/app.js?v=claude-1" defer></script>
+  <script src="/clock.js?v=claude-1" defer></script>
 </head>
 <body>
   <div id="app" class="app-shell">
-    <div id="dashboardError" class="error-banner" hidden></div>
+    <div id="dashboardError" class="error-banner" role="alert" hidden></div>
 
     <nav class="screen-nav" aria-label="Dashboard screens">
-      <a href="/?screen=all" data-screen-link="all">ALL</a>
-      <a href="/?screen=1" data-screen-link="1">TV 1</a>
-      <a href="/?screen=2" data-screen-link="2">TV 2</a>
-      <a href="/?screen=3" data-screen-link="3">TV 3</a>
-      <a href="/exchange-input.html" class="setup-link" title="Open The Exchange Dashboard Manager">MANAGER</a>
-      <a href="#" id="controllerLink" class="setup-link" title="Open The Exchange Dashboard Control">CONTROL</a>
+      <a href="/?screen=all" data-screen-link="all">All</a>
+      <a href="/?screen=1" data-screen-link="1">Comms</a>
+      <a href="/?screen=2" data-screen-link="2">Worship</a>
+      <a href="/?screen=3" data-screen-link="3">Order</a>
+      <a href="/exchange-input.html" class="setup-link">Manager</a>
+      <a href="/original.html?screen=all" class="setup-link">Original</a>
+      <a href="#" id="controllerLink" hidden>Control</a>
     </nav>
 
     <main id="screens" class="screens" aria-live="polite">
-      <section class="tv-screen tv1" data-screen="1" aria-label="TV 1 Communication and Service Support">
-        <header class="exchange-header">
-          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"></div>
-          <div class="service-kicker">WEDNESDAY NIGHT</div>
-          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+
+      <!-- TV 1 · Comms -->
+      <section class="tv-screen tv1" data-screen="1" aria-label="Comms screen">
+        <header class="x-header">
+          <div class="x-brand">
+            <img class="exchange-logo-image" src="/exchange-logo.png?v=claude-1" alt="The Exchange">
+            <div class="x-wordmark">
+              
+              <span class="x-screen-name">Comms</span>
+            </div>
+          </div>
+          <div class="x-when">
+            <div class="x-clock" data-clock>--:--</div>
+            <div class="x-date" data-plan-date>Loading service</div>
+          </div>
         </header>
 
-        <section class="board-section communication-section communication-board">
-          <div class="section-heading purple"><span>COMMUNICATION</span></div>
-
+        <section class="x-section">
+          <h2 class="x-title">Communication</h2>
           <div id="communicationRoleGrid" class="communication-role-grid">
             <div class="loading-card">Loading communication assignments…</div>
           </div>
-
           <div id="communicationInfoGrid" class="communication-info-grid">
             <div class="loading-card">Loading service information…</div>
           </div>
-
-          <div class="communication-wide-grid">
-            <article class="communication-content-card announcements-card">
-              <div class="communication-info-label">ANNOUNCEMENTS</div>
-              <div id="announcementsContent" class="communication-content">Loading announcements…</div>
-            </article>
-
-            <article class="communication-content-card verse-card">
-              <div class="communication-info-label">VERSE OF THE DAY</div>
-              <div id="verseOfDayContent" class="communication-content verse-content">Loading verse…</div>
-            </article>
-          </div>
-
         </section>
 
-        <section class="board-section support-section service-support-reserved">
-          <div class="section-heading gold"><span>SERVICE SUPPORT TEAM</span></div>
+        <section class="x-section x-band">
+          <article class="communication-content-card announcements-card">
+            <h3 class="x-subtitle">Announcements</h3>
+            <div id="announcementsContent" class="communication-content">Loading announcements…</div>
+          </article>
+          <article class="communication-content-card verse-card">
+            <h3 class="x-subtitle">Verse of the day</h3>
+            <div id="verseOfDayContent" class="communication-content verse-content">Loading verse…</div>
+          </article>
+        </section>
+
+        <section class="x-section x-grow">
+          <h2 class="x-title">Service support</h2>
           <div id="serviceSupportGrid" class="photo-grid support-grid">
             <div class="loading-card">Loading service support…</div>
           </div>
         </section>
 
         <footer class="tv-footer">
-          <span data-plan-title>THE EXCHANGE</span>
-          <span data-last-updated>CONNECTING</span>
+          <span data-plan-title>The Exchange</span>
+          <span data-last-updated>Connecting</span>
         </footer>
       </section>
 
-      <section class="tv-screen tv2" data-screen="2" aria-label="TV 2 Worship Team and Songs">
-        <header class="exchange-header">
-          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"></div>
-          <div class="service-kicker">WEDNESDAY NIGHT</div>
-          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+      <!-- TV 2 · Worship -->
+      <section class="tv-screen tv2" data-screen="2" aria-label="Worship screen">
+        <header class="x-header">
+          <div class="x-brand">
+            <img class="exchange-logo-image" src="/exchange-logo.png?v=claude-1" alt="The Exchange">
+            <div class="x-wordmark">
+              
+              <span class="x-screen-name">Worship</span>
+            </div>
+          </div>
+          <div class="x-when">
+            <div class="x-clock" data-clock>--:--</div>
+            <div class="x-date" data-plan-date>Loading service</div>
+          </div>
         </header>
 
-        <section class="board-section worship-section">
-          <div class="section-heading teal"><span>WORSHIP TEAM</span></div>
-
+        <section class="x-section">
+          <h2 class="x-title">Worship team</h2>
           <div id="worshipServiceLeadSection" class="worship-service-lead-section" hidden>
             <div id="worshipServiceLeadGrid" class="photo-grid worship-service-lead-grid"></div>
           </div>
-
-          <div class="subheading">VOCALS</div>
+          <h3 class="x-subtitle">Vocals</h3>
           <div id="vocalsGrid" class="photo-grid vocals-grid">
             <div class="loading-card">Loading vocals…</div>
           </div>
-
-          <div class="subheading band-heading">BAND</div>
+          <h3 class="x-subtitle">Band</h3>
           <div id="bandGrid" class="photo-grid band-grid">
             <div class="loading-card">Loading band…</div>
           </div>
         </section>
 
-        <section class="songs-section">
-          <div class="section-heading teal"><span>TONIGHT'S SONGS</span></div>
+        <section class="x-section">
+          <h2 class="x-title">Tonight's songs</h2>
           <div id="songsList" class="songs-list">
             <div class="loading-card">Loading songs…</div>
           </div>
         </section>
 
-        <section class="manual-notes-section">
-          <div class="section-heading teal"><span>NOTES</span></div>
+        <section class="x-section x-grow">
+          <h2 class="x-title">Notes</h2>
           <div id="manualNotesContent" class="manual-notes-content">
             <div class="notes-empty-text">No notes entered.</div>
           </div>
         </section>
 
         <footer class="tv-footer">
-          <span data-plan-title>THE EXCHANGE</span>
-          <span data-last-updated>CONNECTING</span>
+          <span data-plan-title>The Exchange</span>
+          <span data-last-updated>Connecting</span>
         </footer>
       </section>
 
-      <section class="tv-screen tv3" data-screen="3" aria-label="TV 3 Order of Service">
-        <header class="exchange-header">
-          <div class="exchange-brand"><img class="exchange-logo-image" src="/exchange-logo.png?v=20260910-exchange-v49" alt="The Exchange logo"></div>
-          <div class="service-kicker">WEDNESDAY NIGHT</div>
-          <div class="service-date" data-plan-date>LOADING SERVICE</div>
+      <!-- TV 3 · Order of service -->
+      <section class="tv-screen tv3" data-screen="3" aria-label="Order of service screen">
+        <header class="x-header">
+          <div class="x-brand">
+            <img class="exchange-logo-image" src="/exchange-logo.png?v=claude-1" alt="The Exchange">
+            <div class="x-wordmark">
+              
+              <span class="x-screen-name">Order of service</span>
+            </div>
+          </div>
+          <div class="x-when">
+            <div class="x-clock" data-clock>--:--</div>
+            <div class="x-date" data-plan-date>Loading service</div>
+          </div>
         </header>
 
-        <section class="board-section order-section">
-          <div class="section-heading blue"><span>ORDER OF SERVICE</span></div>
+        <section class="x-section x-grow">
           <div id="orderList" class="order-list">
             <div class="loading-card">Loading service order…</div>
           </div>
         </section>
 
         <footer class="tv-footer">
-          <span data-plan-title>THE EXCHANGE</span>
-          <span data-last-updated>CONNECTING</span>
+          <span data-plan-title>The Exchange</span>
+          <span data-last-updated>Connecting</span>
         </footer>
       </section>
     </main>
 
     <aside id="debugPanel" class="debug-panel" hidden>
-      <h2>Exchange Dashboard Diagnostics</h2>
+      <h2>Diagnostics</h2>
       <div id="debugContent"></div>
     </aside>
   </div>
