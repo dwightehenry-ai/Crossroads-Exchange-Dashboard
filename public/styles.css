@@ -143,6 +143,8 @@ body.screen-single .screen-nav:hover, body.screen-single .screen-nav:focus-withi
   font-size: clamp(.7rem, 1.45vmin, 1.15rem);
   letter-spacing: .22em;
 }
+body.screen-all .service-kicker,
+body.screen-single .service-kicker { margin-top: .22rem; }
 .service-date {
   margin-top: .4rem;
   font-size: clamp(.67rem, 1.3vmin, 1.05rem);
