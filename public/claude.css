@@ -22,6 +22,7 @@
   --photo: clamp(2.8rem, calc(6 * var(--s)), 6.2rem);
   --r: .4rem;
   --s: 1vmin;
+  --heading: clamp(1.7rem, calc(4.6 * var(--s)), 4.2rem);
 }
 /* The screens are always dark (they hang in a dim green room); these keep
    the tokens pinned even if a device asks for light mode. */
@@ -90,25 +91,30 @@ body.screen-single .tv-screen.is-active { display: flex; }
   flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   padding-bottom: calc(var(--gap) * 1.2); border-bottom: 1px solid var(--gold-dim);
 }
-.x-brand { display: flex; align-items: center; gap: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); min-width: 0; }
-.exchange-logo-image { height: clamp(2.4rem, calc(6.4 * var(--s)), 6.4rem); width: auto; border-radius: .3rem; flex: 0 0 auto; }
+.x-brand { flex: 1 1 auto; display: flex; align-items: center; gap: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); min-width: 0; }
+.exchange-logo-image { height: clamp(3.6rem, calc(10 * var(--s)), 9.5rem); width: auto; border-radius: .3rem; flex: 0 0 auto; }
 .x-wordmark { display: flex; flex-direction: column; min-width: 0; }
 .x-wordmark { padding-left: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); border-left: 1px solid var(--line); }
 .x-screen-name {
   font-family: var(--cond); font-weight: 600; color: var(--text);
-  font-size: clamp(1.1rem, calc(3.4 * var(--s)), 3rem); letter-spacing: .02em; line-height: 1;
+  font-size: clamp(1rem, calc(2.6 * var(--s)), 2.4rem); letter-spacing: .02em; line-height: 1;
+}
+.x-week {
+  font-family: var(--cond); font-weight: 700; color: var(--gold);
+  font-size: clamp(1.1rem, calc(3.4 * var(--s)), 3.1rem); line-height: 1.05; margin-top: .15em;
+  overflow-wrap: anywhere;
 }
 .x-when { text-align: right; flex: 0 0 auto; }
-.x-clock { font-family: var(--cond); font-weight: 700; font-size: clamp(1.7rem, calc(5.2 * var(--s)), 4.8rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.x-clock { font-family: var(--cond); font-weight: 700; font-size: var(--heading); line-height: 1; font-variant-numeric: tabular-nums; }
 .x-date { font-family: var(--cond); font-weight: 500; color: var(--muted); font-size: clamp(.75rem, calc(1.7 * var(--s)), 1.5rem); letter-spacing: .03em; margin-top: .25em; }
 
 /* ---------- section titles (the one flourish) ---------- */
-.x-section { display: flex; flex-direction: column; gap: var(--gap); min-height: 0; }
-.x-grow { flex: 1 1 auto; }
+.x-section { display: flex; flex-direction: column; gap: var(--gap); flex: 0 0 auto; }
+.x-grow { flex: 1 0 auto; }
 .x-title {
   display: flex; align-items: center; gap: .6em;
   font-family: var(--script); color: var(--gold); line-height: 1.05;
-  font-size: clamp(1.7rem, calc(4.6 * var(--s)), 4.2rem);
+  font-size: var(--heading);
 }
 .x-title::after { content: ""; flex: 1; height: 1px; background: var(--line); transform: translateY(.18em); }
 .x-subtitle {
@@ -184,6 +190,9 @@ body.screen-single .tv-screen.is-active { display: flex; }
 
 /* ---------- worship ---------- */
 .vocals-grid { grid-template-columns: repeat(auto-fill, minmax(clamp(12rem, calc(26 * var(--s)), 22rem), 1fr)); }
+body.screen-single .band-grid { grid-template-columns: repeat(var(--band-cols, 3), minmax(0, 1fr)); }
+.band-grid.band-dense .person-card { grid-template-columns: 1fr; justify-items: center; align-content: start; gap: calc(var(--gap) * .6); text-align: center; border-left: 0; border-top: 3px solid var(--gold-dim); }
+.band-grid.band-dense .person-role { white-space: normal; }
 .songs-list { display: flex; flex-direction: column; }
 .song-row {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 1em; align-items: center;
@@ -220,7 +229,7 @@ body.screen-single .tv-screen.is-active { display: flex; }
 
 /* ---------- footer ---------- */
 .tv-footer {
-  margin-top: auto; flex: 0 0 auto; display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: auto; flex: 0 0 auto; position: relative; display: flex; justify-content: space-between; gap: 1rem;
   padding-top: calc(var(--gap) * .8); border-top: 1px solid var(--line);
   font-family: var(--cond); font-weight: 500; color: var(--muted); font-size: clamp(.7rem, calc(1.4 * var(--s)), 1.15rem); letter-spacing: .04em;
 }
@@ -235,9 +244,11 @@ body.screen-single .tv-screen.is-active { display: flex; }
 
 /* ---------- ALL preview: scale type down to fit three columns ---------- */
 body.screen-all .tv-screen { --pad: .9rem; --gap: .45rem; --photo: 2.6rem; font-size: 13px; min-height: 80vh; }
-body.screen-all .exchange-logo-image { height: 1.9rem; }
-body.screen-all .x-clock { font-size: 1.6rem; }
-body.screen-all .x-screen-name { font-size: 1.05rem; }
+body.screen-all .exchange-logo-image { height: 2.6rem; }
+body.screen-all .tv-screen { --heading: 1.7rem; }
+body.screen-all .x-week { font-size: 1.05rem; }
+body.screen-all .x-screen-name { font-size: .8rem; }
+body.screen-all .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 body.screen-all .x-date, body.screen-all .tv-footer { font-size: .75rem; }
 body.screen-all .x-title { font-size: 1.7rem; }
 body.screen-all .x-subtitle { font-size: .9rem; }
