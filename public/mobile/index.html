@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Green Room">
+  <link rel="apple-touch-icon" href="/crossroads-logo.png">
+  <link rel="manifest" href="/mobile/manifest.webmanifest">
+  <link rel="stylesheet" href="/mobile/mobile.css">
+  <script src="/mobile/mobile.js" defer></script>
+  <title>Green Room · Mobile</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="identity">
+        <img src="/crossroads-logo.png" alt="Crossroads Church" class="logo">
+        <div><span class="overline">CROSSROADS</span><h1>Green Room</h1></div>
+      </div>
+      <span id="connection" class="connection" role="status">Connecting</span>
+    </header>
+
+    <div class="plan-bar"><span>SERVICE PLAN</span><strong id="plan">Loading…</strong></div>
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <main>
+      <section id="team-panel" class="tab-panel" aria-labelledby="team-tab">
+        <div class="section-heading"><h2>Confirmed team</h2><span id="team-count"></span></div>
+        <div id="team-content" aria-live="polite"><p class="empty">Loading assignments…</p></div>
+      </section>
+
+      <section id="service-panel" class="tab-panel" aria-labelledby="service-tab" hidden>
+        <div class="section-heading"><h2>Service</h2></div>
+        <article class="surface"><span class="label">CURRENT ITEM</span><h3 id="current-item">Loading…</h3><p id="current-type"></p></article>
+        <article class="surface"><span class="label">NEXT ITEM</span><h3 id="next-item">Loading…</h3><p id="next-type"></p></article>
+        <article class="surface"><span class="label">GREEN ROOM MESSAGE</span><p id="message">Loading…</p></article>
+      </section>
+
+      <section id="systems-panel" class="tab-panel" aria-labelledby="systems-tab" hidden>
+        <div class="section-heading"><h2>Systems</h2></div>
+        <div id="systems-content" class="systems-list"><p class="empty">Loading status…</p></div>
+        <p class="updated" id="updated"></p>
+      </section>
+    </main>
+
+    <nav class="tab-bar" aria-label="Mobile dashboard sections" role="tablist">
+      <button id="team-tab" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="team-panel" data-tab="team">Team</button>
+      <button id="service-tab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="service-panel" data-tab="service" tabindex="-1">Service</button>
+      <button id="systems-tab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="systems-panel" data-tab="systems" tabindex="-1">Systems</button>
+    </nav>
+  </div>
+</body>
+</html>
