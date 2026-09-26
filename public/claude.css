@@ -88,10 +88,12 @@ body.screen-single .tv-screen.is-active { display: flex; }
 
 /* ---------- header ---------- */
 .x-header {
-  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex: 0 0 auto; display: grid; align-items: center; column-gap: 1rem; row-gap: calc(var(--gap) * .8);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "brand week when";
   padding-bottom: calc(var(--gap) * 1.2); border-bottom: 1px solid var(--gold-dim);
 }
-.x-brand { flex: 1 1 auto; display: flex; align-items: center; gap: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); min-width: 0; }
+.x-brand { grid-area: brand; justify-self: start; display: flex; align-items: center; gap: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); min-width: 0; }
 .exchange-logo-image { height: clamp(3.6rem, calc(10 * var(--s)), 9.5rem); width: auto; border-radius: .3rem; flex: 0 0 auto; }
 .x-wordmark { display: flex; flex-direction: column; min-width: 0; }
 .x-wordmark { padding-left: clamp(.5rem, calc(1.4 * var(--s)), 1.2rem); border-left: 1px solid var(--line); }
@@ -100,11 +102,11 @@ body.screen-single .tv-screen.is-active { display: flex; }
   font-size: clamp(1rem, calc(2.6 * var(--s)), 2.4rem); letter-spacing: .02em; line-height: 1;
 }
 .x-week {
+  grid-area: week; justify-self: center; text-align: center; max-width: 100%;
   font-family: var(--cond); font-weight: 700; color: var(--gold);
-  font-size: clamp(1.1rem, calc(3.4 * var(--s)), 3.1rem); line-height: 1.05; margin-top: .15em;
-  overflow-wrap: anywhere;
+  font-size: var(--heading); line-height: 1.05; overflow-wrap: anywhere;
 }
-.x-when { text-align: right; flex: 0 0 auto; }
+.x-when { grid-area: when; justify-self: end; text-align: right; }
 .x-clock { font-family: var(--cond); font-weight: 700; font-size: var(--heading); line-height: 1; font-variant-numeric: tabular-nums; }
 .x-date { font-family: var(--cond); font-weight: 500; color: var(--muted); font-size: clamp(.75rem, calc(1.7 * var(--s)), 1.5rem); letter-spacing: .03em; margin-top: .25em; }
 
@@ -236,6 +238,7 @@ body.screen-single .band-grid { grid-template-columns: repeat(var(--band-cols, 3
 
 /* ---------- portrait TVs (Comms + Worship hang tall) ---------- */
 @media (orientation: portrait) {
+  .x-header { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand when" "week week"; }
   body.screen-single { --s: 1.38vmin; }
   .communication-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .x-band { grid-template-columns: 1fr; }
@@ -246,7 +249,8 @@ body.screen-single .band-grid { grid-template-columns: repeat(var(--band-cols, 3
 body.screen-all .tv-screen { --pad: .9rem; --gap: .45rem; --photo: 2.6rem; font-size: 13px; min-height: 80vh; }
 body.screen-all .exchange-logo-image { height: 2.6rem; }
 body.screen-all .tv-screen { --heading: 1.7rem; }
-body.screen-all .x-week { font-size: 1.05rem; }
+body.screen-all .x-week { font-size: 1.3rem; }
+body.screen-all .x-header { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand when" "week week"; }
 body.screen-all .x-screen-name { font-size: .8rem; }
 body.screen-all .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 body.screen-all .x-date, body.screen-all .tv-footer { font-size: .75rem; }
