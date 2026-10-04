@@ -1,1 +1,17 @@
-{"name":"Crossroads Green Room","short_name":"Green Room","start_url":"/mobile/","scope":"/mobile/","display":"standalone","background_color":"#080b10","theme_color":"#080b10","icons":[{"src":"/crossroads-logo.png","sizes":"any","type":"image/png","purpose":"any"}]}
+{
+  "name": "The Exchange Mobile Dashboard",
+  "short_name": "Exchange",
+  "start_url": "/mobile/",
+  "scope": "/mobile/",
+  "display": "standalone",
+  "background_color": "#120b1c",
+  "theme_color": "#120b1c",
+  "icons": [
+    {
+      "src": "/exchange-mark.png?v=exchange-20261004",
+      "sizes": "468x468",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

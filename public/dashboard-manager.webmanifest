@@ -4,12 +4,12 @@
   "start_url": "/exchange-input.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#05080d",
-  "theme_color": "#05080d",
+  "background_color": "#120b1c",
+  "theme_color": "#120b1c",
   "icons": [
     {
-      "src": "/exchange-logo.png",
-      "sizes": "512x512",
+      "src": "/exchange-mark.png?v=exchange-20261004",
+      "sizes": "468x468",
       "type": "image/png",
       "purpose": "any maskable"
     }

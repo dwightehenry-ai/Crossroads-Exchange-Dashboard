@@ -1,0 +1,227 @@
+/* The Exchange: violet / orange poster identity, shared across TVs and phones.
+   Display type is reserved for headings. Names, songs and controls stay legible. */
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/barlow-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/barlow-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/barlow-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "UnifrakturCook"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/unifrakturcook-latin-700-normal.woff2") format("woff2"); }
+
+:root, body {
+  color-scheme: dark;
+  --ink: #120b1c;
+  --bg: #120b1c;
+  --panel: #21152f;
+  --panel-2: #352344;
+  --line: #443253;
+  --border: #443253;
+  --text: #faf7ff;
+  --muted: #c1b4ce;
+  --orange: #ff963d;
+  --violet: #a886ff;
+  --gold: var(--orange);
+  --gold-dim: var(--violet);
+  --pink: var(--orange);
+  --cyan: var(--orange);
+  --purple: var(--violet);
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cond: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --display: "UnifrakturCook", Georgia, serif;
+  --s: 1vmin;
+  --pad: clamp(1rem, calc(4.2 * var(--s)), 3rem);
+  --gap: clamp(.5rem, calc(1.2 * var(--s)), 1.4rem);
+  --photo: clamp(2.8rem, calc(8 * var(--s)), 5.75rem);
+  --heading: clamp(1.8rem, calc(6.8 * var(--s)), 5.5rem);
+  --r: .3rem;
+}
+html, body { background: var(--ink); color: var(--text); font-family: var(--body); }
+body.exchange-board { background: var(--ink); }
+
+/* Full bleed print texture is confined to the header; content stays quiet. */
+.exchange-board .tv-screen { background: var(--ink); border-color: var(--line); border-radius: .35rem; gap: calc(var(--gap) * 1.6); }
+.exchange-board .x-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "brand when";
+  gap: var(--gap);
+  margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 0;
+  padding: calc(var(--pad) * .75) var(--pad);
+  background: var(--ink) url("/exchange-texture.webp") center / cover;
+  border-bottom: 2px solid var(--orange);
+}
+.exchange-board .x-brand { gap: calc(var(--gap) * 1.5); }
+.exchange-board .exchange-logo-image {
+  width: clamp(4rem, calc(14 * var(--s)), 10.5rem);
+  height: auto; aspect-ratio: 1; object-fit: contain;
+  border-radius: 50%; background: #000;
+}
+.exchange-board .x-wordmark { padding-left: 0; border-left: 0; gap: .25rem; }
+.exchange-board .x-screen-name {
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(2rem, calc(8.2 * var(--s)), 6.5rem);
+  letter-spacing: 0; line-height: 1.06;
+}
+.exchange-board .x-week {
+  font-family: var(--cond); font-size: clamp(.9rem, calc(2.9 * var(--s)), 2rem);
+  font-weight: 700; color: var(--orange); letter-spacing: .06em;
+  text-transform: uppercase; text-align: left; line-height: 1.1;
+  justify-self: start; overflow-wrap: anywhere;
+}
+.exchange-board .x-when { max-width: clamp(8rem, calc(31 * var(--s)), 23rem); }
+.exchange-board .x-clock { font-size: clamp(2.2rem, calc(8 * var(--s)), 6rem); }
+.exchange-board .x-date { color: var(--text); font-size: clamp(.75rem, calc(2 * var(--s)), 1.5rem); }
+.exchange-board .x-title { color: var(--text); font-family: var(--display); font-weight: 700; font-size: var(--heading); line-height: 1.12; }
+.exchange-board .x-title::after { height: 2px; background: var(--violet); transform: translateY(.1em); }
+.exchange-board .x-subtitle {
+  color: var(--orange); font-family: var(--cond); font-weight: 700;
+  font-size: clamp(.95rem, calc(2.8 * var(--s)), 2rem);
+  text-transform: uppercase; letter-spacing: .12em; line-height: 1.15;
+}
+
+/* Flat roster tiles match the poster's violet rules without competing with names. */
+.exchange-board .person-card, .exchange-board .communication-role-card, .exchange-board .communication-content-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+}
+.exchange-board .person-card { padding: calc(var(--gap) * .9); gap: calc(var(--gap) * 1.3); }
+.exchange-board .worship-service-lead-grid .person-card { border-color: var(--violet); }
+.exchange-board .person-photo-wrap, .exchange-board .comm-person-photo-wrap { border-radius: .4rem; background: var(--panel-2); }
+.exchange-board .person-initials, .exchange-board .comm-person-initials { color: #e0cfff; }
+.exchange-board .person-role, .exchange-board .communication-role-label, .exchange-board .communication-info-label {
+  color: var(--violet); font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  font-size: clamp(.8rem, calc(1.9 * var(--s)), 1.6rem); white-space: normal; overflow-wrap: anywhere;
+}
+.exchange-board .person-name { font-size: clamp(1.15rem, calc(3.8 * var(--s)), 3rem); line-height: 1.1; }
+.exchange-board .person-name.name-long, .exchange-board .comm-person-name.name-long { font-size: clamp(1rem, calc(3.3 * var(--s)), 2.6rem); }
+.exchange-board .person-name.name-xlong, .exchange-board .comm-person-name.name-xlong { font-size: clamp(.95rem, calc(2.9 * var(--s)), 2.3rem); }
+.exchange-board .person-status, .exchange-board .comm-person-status { color: var(--muted); font-size: clamp(.65rem, calc(1.7 * var(--s)), 1.4rem); letter-spacing: .06em; }
+.exchange-board .worship-service-lead-grid, .exchange-board .vocals-grid { grid-template-columns: 1fr; }
+.exchange-board .band-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.exchange-board .worship-service-lead-grid .person-copy, .exchange-board .vocals-grid .person-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--gap); }
+.exchange-board .worship-service-lead-grid .person-role, .exchange-board .vocals-grid .person-role, .exchange-board .worship-service-lead-grid .person-name, .exchange-board .vocals-grid .person-name { grid-column: 1; }
+.exchange-board .worship-service-lead-grid .person-status, .exchange-board .vocals-grid .person-status { grid-column: 2; grid-row: 1 / 3; align-self: center; border-left: 1px solid var(--line); padding: .7em 0 .7em 1em; margin: 0; }
+.exchange-board .band-grid .person-card { grid-template-columns: calc(var(--photo) * .85) minmax(0, 1fr); }
+.exchange-board .band-grid .person-photo-wrap { width: calc(var(--photo) * .85); height: calc(var(--photo) * .85); }
+.exchange-board .band-grid .person-name { font-size: clamp(1rem, calc(2.6 * var(--s)), 2.2rem); }
+.exchange-board .band-grid .person-role { font-size: clamp(.7rem, calc(1.6 * var(--s)), 1.25rem); }
+.exchange-board .band-grid .person-status { display: none; }
+.exchange-board .band-grid.band-dense .person-card { border-top: 1px solid var(--line); border-left: 1px solid var(--line); justify-items: start; text-align: left; align-content: center; }
+.exchange-board .communication-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.exchange-board .communication-role-card { padding: var(--gap); }
+.exchange-board .comm-person { grid-template-columns: calc(var(--photo) * .8) minmax(0, 1fr); }
+.exchange-board .comm-person-photo-wrap { width: calc(var(--photo) * .8); height: calc(var(--photo) * .8); }
+.exchange-board .comm-person-name { font-size: clamp(1rem, calc(3.2 * var(--s)), 2.6rem); }
+.exchange-board .communication-content-card .x-subtitle { color: var(--orange); }
+.exchange-board .communication-content, .exchange-board .manual-notes-content { font-size: clamp(1rem, calc(2.6 * var(--s)), 2.2rem); line-height: 1.4; }
+.exchange-board .verse-content { font-style: normal; }
+.exchange-board .manual-notes-content li { padding: 0; border: 0; }
+
+/* Songs and service order use open rows and the same orange cue accents. */
+.exchange-board .song-row { gap: calc(var(--gap) * 2); padding: calc(var(--gap) * 1.2) 0; border-color: var(--line); }
+.exchange-board .song-row:first-child { border-top: 0; }
+.exchange-board .song-number { color: var(--orange); font-size: clamp(1.5rem, calc(7 * var(--s)), 5.5rem); }
+.exchange-board .song-title { font-size: clamp(1.2rem, calc(3.8 * var(--s)), 3rem); line-height: 1.1; }
+.exchange-board .song-singers { color: var(--muted); font-size: clamp(.8rem, calc(2.2 * var(--s)), 1.8rem); letter-spacing: .05em; }
+.exchange-board .song-key { color: var(--orange); background: transparent; border-left: 1px solid var(--line); border-radius: 0; padding: .55em .5em .55em 1.1em; font-size: clamp(.9rem, calc(2.5 * var(--s)), 2rem); }
+.exchange-board .order-row { border-color: var(--line); padding: calc(var(--gap) * 1.1) 0; }
+.exchange-board .order-icon { color: var(--violet); border-color: var(--line); border-radius: var(--r); }
+.exchange-board .order-song-row .order-icon { color: var(--ink); background: var(--orange); border-color: var(--orange); }
+.exchange-board .order-game .order-label, .exchange-board .order-announcements .order-label { color: var(--orange); }
+.exchange-board .order-subheading { color: var(--muted); }
+.exchange-board .tv-footer { font-size: clamp(.8rem, calc(2 * var(--s)), 1.5rem); color: var(--muted); }
+.exchange-board .screen-nav { background: rgba(18,11,28,.96); border-color: var(--line); }
+.exchange-board .screen-nav a.active { background: var(--orange); color: var(--ink); }
+.exchange-board .screen-nav a:focus-visible { outline-color: var(--orange); }
+.exchange-board .error-banner { background: #361322; border-color: #ff8c9d; color: var(--text); }
+
+@media (orientation: portrait) { body.exchange-board.screen-single { --s: 1vmin; } }
+body.exchange-board.screen-all .tv-screen { --pad: 1rem; --gap: .55rem; --photo: 2.8rem; --heading: 1.9rem; }
+body.exchange-board.screen-all .exchange-logo-image { width: 4rem; height: auto; }
+body.exchange-board.screen-all .x-screen-name { font-size: 2.1rem; }
+body.exchange-board.screen-all .x-week { font-size: .9rem; }
+body.exchange-board.screen-all .x-clock { font-size: 1.8rem; }
+body.exchange-board.screen-all .x-date { font-size: .7rem; }
+body.exchange-board.screen-all .x-when { max-width: 7rem; }
+body.exchange-board.screen-all .x-title { font-size: 1.9rem; }
+body.exchange-board.screen-all .x-subtitle { font-size: .85rem; }
+body.exchange-board.screen-all .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.exchange-board.screen-all .worship-service-lead-grid .person-copy, body.exchange-board.screen-all .vocals-grid .person-copy { display: block; }
+body.exchange-board.screen-all .worship-service-lead-grid .person-status, body.exchange-board.screen-all .vocals-grid .person-status { border-left: 0; padding: 0; margin-top: .15em; }
+body.exchange-board.screen-all .band-grid .person-card { grid-template-columns: 2.1rem minmax(0, 1fr); gap: .45rem; }
+body.exchange-board.screen-all .band-grid .person-photo-wrap { width: 2.1rem; height: 2.1rem; }
+body.exchange-board.screen-all .person-name, body.exchange-board.screen-all .comm-person-name { font-size: 1.15rem; }
+body.exchange-board.screen-all .band-grid .person-name { font-size: 1rem; }
+body.exchange-board.screen-all .person-role, body.exchange-board.screen-all .communication-role-label, body.exchange-board.screen-all .communication-info-label,
+body.exchange-board.screen-all .song-singers, body.exchange-board.screen-all .order-subheading, body.exchange-board.screen-all .person-status { font-size: .75rem; }
+body.exchange-board.screen-all .band-grid .person-role { font-size: .65rem; }
+body.exchange-board.screen-all .communication-content, body.exchange-board.screen-all .manual-notes-content { font-size: .95rem; }
+body.exchange-board.screen-all .song-title { font-size: 1.2rem; }
+body.exchange-board.screen-all .song-number { font-size: 2rem; }
+body.exchange-board.screen-all .song-key { font-size: .8rem; }
+body.exchange-board.screen-all .tv-footer { font-size: .7rem; }
+
+/* On wide TVs keep the same information stack, at a compact reading scale. */
+@media (orientation: landscape) {
+  body.exchange-board.screen-single { --pad: clamp(1rem, 2.5vmin, 2.5rem); --gap: clamp(.45rem, 1vmin, .8rem); --photo: clamp(2.6rem, 5vmin, 3.8rem); --heading: clamp(1.8rem, 4.6vmin, 3rem); }
+  body.exchange-board.screen-single .vocals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.exchange-board.screen-single .person-name { font-size: clamp(1.1rem, 2.8vmin, 1.9rem); }
+  body.exchange-board.screen-single .x-screen-name { font-size: clamp(2rem, 5vmin, 3.5rem); }
+  body.exchange-board.screen-single .exchange-logo-image { width: clamp(4rem, 9vmin, 6rem); }
+  body.exchange-board.screen-single .x-clock { font-size: clamp(2rem, 5vmin, 3.5rem); }
+  body.exchange-board.screen-single .song-row { padding: .4rem 0; }
+  body.exchange-board.screen-single .song-number { font-size: 2.4rem; }
+  body.exchange-board.screen-single .song-title { font-size: clamp(1.2rem, 2.8vmin, 1.9rem); }
+  body.exchange-board.screen-single .song-singers, body.exchange-board.screen-single .person-role { font-size: clamp(.75rem, 1.8vmin, 1.1rem); }
+  body.exchange-board.screen-single .manual-notes-content { font-size: clamp(1rem, 2.2vmin, 1.4rem); }
+}
+@media (max-width: 620px) {
+  body.exchange-board.screen-single .band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exchange-board .x-header { align-items: center; }
+  .exchange-board .worship-service-lead-grid .person-copy, .exchange-board .vocals-grid .person-copy { display: block; }
+  .exchange-board .worship-service-lead-grid .person-status, .exchange-board .vocals-grid .person-status { border-left: 0; padding: 0; margin-top: .15em; }
+  .exchange-board .x-when { max-width: 7.5rem; }
+  .exchange-board .screen-nav { gap: .15rem; }
+  .exchange-board .screen-nav a { min-height: 36px; display: grid; place-items: center; }
+}
+
+/* Manager: retain the form workflow and touch targets, apply the same identity. */
+body.exchange-manager { background: var(--ink) url("/exchange-texture.webp") center top / 100% auto no-repeat; }
+.exchange-manager .input-header { padding-bottom: 1.25rem; border-color: var(--orange); }
+.exchange-manager .brand-lockup img { background: #000; border-color: var(--line); }
+.exchange-manager h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.1; }
+.exchange-manager .eyebrow, .exchange-manager .card-kicker { color: var(--orange); }
+.exchange-manager .manager-card { background: var(--panel); border-color: var(--line); border-radius: .5rem; box-shadow: none; }
+.exchange-manager .plan-card { border-top-color: var(--orange); }
+.exchange-manager .manual-card { border-top-color: var(--violet); }
+.exchange-manager .input-nav a, .exchange-manager .secondary-button { background: var(--panel); border-color: var(--line); }
+.exchange-manager .active-plan-badge, .exchange-manager .editing-plan-label { background: #352344; border-color: var(--line); color: #e0cfff; border-radius: .4rem; }
+.exchange-manager .primary-button { color: var(--ink); background: var(--orange); border-color: var(--orange); }
+.exchange-manager .field select, .exchange-manager .field textarea, .exchange-manager .field input { background: var(--ink); color: var(--text); border: 1px solid var(--line); border-radius: .4rem; width: 100%; padding: .75rem; font: inherit; min-height: 48px; }
+.exchange-manager .field textarea { min-height: 155px; }
+.exchange-manager .manual-field-wide textarea { min-height: 180px; }
+.exchange-manager .field select:focus, .exchange-manager .field textarea:focus, .exchange-manager .field input:focus { border-color: var(--violet); outline: 2px solid var(--violet); outline-offset: 2px; box-shadow: none; }
+.exchange-manager .field > span { color: var(--text); }
+.exchange-manager .help-grid > div { background: var(--ink); border-color: var(--line); }
+.exchange-manager .help-grid strong { color: var(--orange); }
+.exchange-manager button:focus-visible, .exchange-manager a:focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+
+/* Mobile roster: consistent branding, familiar tabs, unchanged disclosure flow. */
+body.exchange-mobile { background: var(--ink) url("/exchange-texture.webp") center top / auto 230px no-repeat; }
+.exchange-mobile .app-header { border-bottom: 1px solid var(--orange); margin-bottom: 1rem; }
+.exchange-mobile .logo { width: 60px; height: 60px; border-radius: 50%; }
+.exchange-mobile h1, .exchange-mobile .section-heading h2 { font-family: var(--display); font-weight: 700; line-height: 1.15; }
+.exchange-mobile h1 { font-size: 2rem; }
+.exchange-mobile .section-heading h2 { font-size: 1.8rem; }
+.exchange-mobile .overline, .exchange-mobile .label, .exchange-mobile .plan-bar > span { color: var(--orange); }
+.exchange-mobile .plan-bar, .exchange-mobile .person, .exchange-mobile .surface, .exchange-mobile .system-row { background: var(--panel); border-color: var(--line); border-radius: .4rem; }
+.exchange-mobile .person[open] { border-color: var(--violet); }
+.exchange-mobile .person-detail { border-color: var(--line); }
+.exchange-mobile .person-title small, .exchange-mobile .section-heading span, .exchange-mobile .empty, .exchange-mobile .updated { color: var(--muted); }
+.exchange-mobile .team-group h3 { color: var(--violet); }
+.exchange-mobile .avatar, .exchange-mobile .portrait-fallback, .exchange-mobile .assignments div { background: var(--panel-2); color: #e0cfff; }
+.exchange-mobile .chevron { color: var(--orange); }
+.exchange-mobile .tab-bar { background: var(--ink); border-color: var(--line); }
+.exchange-mobile .tab.active { background: var(--orange); color: var(--ink); }
+.exchange-mobile .tab, .exchange-mobile .assignments dt { color: var(--muted); }
+.exchange-mobile .tab:focus-visible, .exchange-mobile .person summary:focus-visible { outline-color: var(--violet); }
+.exchange-mobile .surface p { color: var(--text); }
+@media (max-width: 360px) { .exchange-mobile .logo { width: 44px; height: 44px; } .exchange-mobile h1 { font-size: 1.6rem; } }
