@@ -1,0 +1,84 @@
+/* The Exchange v4.10 Manager additions: Planning Center status, TV PIN,
+   plan notes, device tools. Uses the tokens from exchange-brand.css. */
+
+.exchange-manager .field-hint { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.4; }
+
+.exchange-manager .pco-status-row,
+.exchange-manager .device-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.exchange-manager .pco-status { margin-top: 4px; font-weight: 700; }
+.exchange-manager .pco-status[data-stale="1"] { color: #ffb86b; }
+.exchange-manager .device-row { justify-content: flex-start; }
+.exchange-manager .link-button {
+  display: inline-grid; place-items: center; min-height: 46px; padding: 0 16px;
+  border: 1px solid var(--line); border-radius: 10px;
+  color: var(--text); font-weight: 800; text-decoration: none;
+}
+.exchange-manager .link-button:hover { border-color: var(--violet); }
+
+.exchange-manager .tv-change {
+  display: grid; gap: 8px;
+  margin-top: 18px; padding: 16px;
+  border: 1px solid var(--line); border-left: 3px solid var(--orange); border-radius: .5rem;
+  background: var(--ink);
+}
+.exchange-manager .tv-change-grid {
+  display: grid; grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr); align-items: end; gap: 14px;
+}
+.exchange-manager .tv-change .button-row { margin-top: 0; }
+
+/* Notes */
+.exchange-manager .notes-card { border-top-color: var(--violet); }
+.exchange-manager .note-form { display: grid; gap: 12px; }
+.exchange-manager .note-form .field textarea { min-height: 84px; }
+.exchange-manager .note-form-row {
+  display: grid; grid-template-columns: minmax(10rem, 14rem) auto minmax(0, 1fr); align-items: end; gap: 14px;
+}
+.exchange-manager .note-form-row .button-row { margin-top: 0; justify-content: flex-end; }
+.exchange-manager .check-field {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px;
+  font-weight: 700; cursor: pointer;
+}
+.exchange-manager .check-field input { width: 22px; height: 22px; accent-color: var(--orange); }
+.exchange-manager .note-form.is-editing { padding: 14px; border: 1px solid var(--orange); border-radius: .5rem; }
+
+.exchange-manager .notes-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.exchange-manager .notes-empty { color: var(--muted); padding: 14px; border: 1px dashed var(--line); border-radius: .5rem; }
+.exchange-manager .note-item {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--ink);
+  border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: .5rem;
+}
+.exchange-manager .note-item.is-pinned { border-left-color: var(--orange); }
+.exchange-manager .note-item-text { overflow-wrap: anywhere; line-height: 1.4; }
+.exchange-manager .note-item-tags { display: flex; gap: 6px; margin-bottom: 6px; }
+.exchange-manager .note-tag {
+  font: 700 .7rem/1 var(--cond); letter-spacing: .08em; text-transform: uppercase;
+  padding: 4px 7px; border-radius: 4px; border: 1px solid currentColor;
+}
+.exchange-manager .note-tag.pin { color: var(--ink); background: var(--orange); border-color: var(--orange); }
+.exchange-manager .note-tag.cat-general { color: #c1b4ce; }
+.exchange-manager .note-tag.cat-worship { color: var(--orange); }
+.exchange-manager .note-tag.cat-production { color: var(--violet); }
+.exchange-manager .note-tag.cat-students { color: #6fd3c1; }
+.exchange-manager .note-tag.cat-follow-up { color: #ffd166; }
+.exchange-manager .note-actions { display: flex; gap: 6px; }
+.exchange-manager .note-actions button {
+  width: auto; min-height: 40px; padding: 0 12px; font-size: .85rem;
+}
+.exchange-manager .note-actions .danger { color: #ff9aa8; }
+
+.exchange-manager .device-card { border-top-color: var(--line); }
+
+@media (max-width: 800px) {
+  .exchange-manager .tv-change-grid,
+  .exchange-manager .note-form-row { grid-template-columns: 1fr; }
+  .exchange-manager .note-form-row .button-row { justify-content: stretch; }
+  .exchange-manager .note-item { grid-template-columns: 1fr; }
+  .exchange-manager .note-actions { justify-content: flex-start; }
+}
+@media (max-width: 520px) {
+  .exchange-manager .note-actions button { flex: 1 1 0; width: auto; min-height: 44px; }
+}

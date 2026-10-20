@@ -36,6 +36,9 @@ const MANUAL_BOARD_CONTENT_PATH = path.join(
 // A host set in config.json still takes priority if the address changes later.
 const DEFAULT_ATEM_IP_ADDRESS = "192.168.10.240";
 
+// Render (and most hosts) put a proxy in front of the app. Trusting it lets
+// req.ip be the real phone/tablet address for PIN lockout tracking.
+app.set("trust proxy", true);
 app.use(express.json());
 
 /*
@@ -103,14 +106,60 @@ function requireServerComputer(req, res, next) {
   );
 }
 
+/*
+| PIN guessing protection: after too many wrong PINs from one address,
+| that address is locked out for a while. Render sits behind a proxy, so the
+| client address comes from X-Forwarded-For (see "trust proxy" below).
+*/
+const PIN_MAX_FAILURES = 6;
+const PIN_FAILURE_WINDOW_MS = 10 * 60 * 1000;
+const PIN_LOCKOUT_MS = 10 * 60 * 1000;
+const pinFailures = new Map();
+
+function pinClientKey(req) {
+  return String(req.ip || req.socket?.remoteAddress || "unknown");
+}
+
+function pinLockedOut(req) {
+  const record = pinFailures.get(pinClientKey(req));
+  return Boolean(record && record.lockedUntil > Date.now());
+}
+
+function recordPinResult(req, success) {
+  const key = pinClientKey(req);
+  if (success) {
+    pinFailures.delete(key);
+    return;
+  }
+  const now = Date.now();
+  const record = pinFailures.get(key);
+  const fresh = !record || now - record.firstAt > PIN_FAILURE_WINDOW_MS;
+  const next = fresh
+    ? { count: 1, firstAt: now, lockedUntil: 0 }
+    : { ...record, count: record.count + 1 };
+  if (next.count >= PIN_MAX_FAILURES) next.lockedUntil = now + PIN_LOCKOUT_MS;
+  pinFailures.set(key, next);
+}
+
 function isDashboardManagerAuthorized(req) {
   if (isServerComputerRequest(req)) return true;
-  return String(req.headers["x-exchange-pin"] || "") === EXCHANGE_MANAGER_PIN;
+  const supplied = String(req.headers["x-exchange-pin"] || "");
+  if (!supplied || pinLockedOut(req)) return false;
+  const ok = supplied === EXCHANGE_MANAGER_PIN;
+  recordPinResult(req, ok);
+  return ok;
 }
 
 function requireDashboardManager(req, res, next) {
   if (isDashboardManagerAuthorized(req)) {
     return next();
+  }
+
+  if (pinLockedOut(req)) {
+    return res.status(429).json({
+      error: "Too many incorrect PIN attempts",
+      detail: "Too many incorrect PIN attempts. Wait 10 minutes and try again."
+    });
   }
 
   return res.status(401).json({
@@ -186,7 +235,8 @@ app.get(
   (req, res) => {
     res.json({
       allowed: isDashboardManagerAuthorized(req),
-      serverComputer: isServerComputerRequest(req)
+      serverComputer: isServerComputerRequest(req),
+      lockedOut: pinLockedOut(req)
     });
   }
 );
@@ -216,9 +266,11 @@ app.get(
   }
 );
 
-app.get("/tv1", (req, res) => res.redirect(302, "/?screen=1"));
-app.get("/tv2", (req, res) => res.redirect(302, "/?screen=2"));
-app.get("/tv3", (req, res) => res.redirect(302, "/?screen=3"));
+// The TV addresses are display-only: no navigation, no admin tools, and
+// they always follow the TV plan (never a device preview).
+app.get("/tv1", (req, res) => res.redirect(302, "/?screen=1&tv=1"));
+app.get("/tv2", (req, res) => res.redirect(302, "/?screen=2&tv=1"));
+app.get("/tv3", (req, res) => res.redirect(302, "/?screen=3&tv=1"));
 app.get("/all", (req, res) => res.redirect(302, "/?screen=all"));
 
 app.use(express.static(PUBLIC_DIR));
@@ -371,6 +423,8 @@ function upsertManualBoardContent(input = {}) {
     String(entry?.planId || "") === planId
   );
 
+  const existing = existingIndex >= 0 ? entries[existingIndex] : {};
+
   const record = {
     serviceTypeId,
     serviceTypeName: cleanManualBoardText(input.serviceTypeName, 120),
@@ -378,7 +432,12 @@ function upsertManualBoardContent(input = {}) {
     planLabel: cleanManualBoardText(input.planLabel, 250),
     announcements: cleanManualBoardText(input.announcements, 5000),
     verseOfDay: cleanManualBoardText(input.verseOfDay, 2000),
-    worshipNotes: cleanManualBoardText(input.worshipNotes, 5000),
+    // Notes are managed by /api/notes now. Keep whatever is already stored
+    // unless an older manager page still sends the old notes text box.
+    worshipNotes: input.worshipNotes === undefined
+      ? cleanManualBoardText(existing.worshipNotes, 5000)
+      : cleanManualBoardText(input.worshipNotes, 5000),
+    ...(Array.isArray(existing.notes) ? { notes: existing.notes } : {}),
     updatedAt: new Date().toISOString()
   };
 
@@ -387,6 +446,110 @@ function upsertManualBoardContent(input = {}) {
 
   saveManualBoardContent(entries);
   return record;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Plan notes: pinned, categorized, editable. No author or time is stored.
+|--------------------------------------------------------------------------
+*/
+
+const NOTE_CATEGORIES = Object.freeze([
+  "General",
+  "Worship",
+  "Production",
+  "Students",
+  "Follow-up"
+]);
+const MAX_NOTES_PER_PLAN = 60;
+
+function normalizeNoteCategory(value) {
+  const wanted = String(value || "").trim().toLowerCase();
+  return NOTE_CATEGORIES.find((name) => name.toLowerCase() === wanted) || "General";
+}
+
+function normalizeNote(input = {}, existing = {}) {
+  const text = cleanManualBoardText(
+    input.text === undefined ? existing.text : input.text,
+    600
+  );
+  if (!text) throw new Error("A note needs some text");
+  return {
+    id: String(existing.id || input.id || randomUUID()),
+    text,
+    category: normalizeNoteCategory(
+      input.category === undefined ? existing.category : input.category
+    ),
+    pinned: Boolean(input.pinned === undefined ? existing.pinned : input.pinned)
+  };
+}
+
+// Pinned notes first; otherwise keep the order they were added.
+function sortNotes(notes) {
+  return notes
+    .map((note, index) => ({ note, index }))
+    .sort((a, b) => Number(b.note.pinned) - Number(a.note.pinned) || a.index - b.index)
+    .map(({ note }) => note);
+}
+
+// Older saves kept notes as one text box (one note per line). Those lines
+// become General notes the first time the plan's notes are read.
+function notesFromEntry(entry) {
+  if (!entry) return [];
+  if (Array.isArray(entry.notes)) return entry.notes;
+  return String(entry.worshipNotes || "")
+    .split("\n")
+    .map((line) => line.replace(/^[\s•*-]+/, "").trim())
+    .filter(Boolean)
+    .map((text, index) => ({
+      id: `legacy-${index + 1}`,
+      text: text.slice(0, 600),
+      category: "General",
+      pinned: false
+    }));
+}
+
+function notesForPlan(serviceTypeId, planId) {
+  return sortNotes(notesFromEntry(manualBoardContentForPlan(serviceTypeId, planId)));
+}
+
+function updatePlanNotes(serviceTypeId, planId, planLabel, change) {
+  const serviceId = cleanManualBoardText(serviceTypeId, 80);
+  const selectedPlanId = cleanManualBoardText(planId, 80);
+  if (!serviceId || !selectedPlanId) {
+    throw new Error("serviceTypeId and planId are required");
+  }
+
+  const entries = loadManualBoardContent();
+  let index = entries.findIndex((entry) =>
+    String(entry?.serviceTypeId || "") === serviceId &&
+    String(entry?.planId || "") === selectedPlanId
+  );
+  if (index < 0) {
+    entries.push({
+      serviceTypeId: serviceId,
+      serviceTypeName: "",
+      planId: selectedPlanId,
+      planLabel: cleanManualBoardText(planLabel, 250),
+      announcements: "",
+      verseOfDay: "",
+      worshipNotes: ""
+    });
+    index = entries.length - 1;
+  }
+
+  const entry = entries[index];
+  const notes = change(notesFromEntry(entry).slice());
+  entries[index] = {
+    ...entry,
+    planLabel: entry.planLabel || cleanManualBoardText(planLabel, 250),
+    notes,
+    // The old text box has been converted into notes above.
+    worshipNotes: "",
+    updatedAt: new Date().toISOString()
+  };
+  saveManualBoardContent(entries);
+  return sortNotes(notes);
 }
 
 /*
@@ -520,6 +683,56 @@ async function planningCenterRequest(
 const PLANNING_CENTER_CORE_CACHE_MS = 30 * 1000;
 const PLANNING_CENTER_LIVE_CACHE_MS = 4 * 1000;
 
+// If the newest successful Planning Center read is older than this, the
+// screens show "Planning Center data may be outdated". Normal refreshes
+// happen every 30 seconds, so this allows several missed refreshes first.
+const PLANNING_CENTER_STALE_AFTER_SECONDS = 3 * 60;
+
+// Manual refresh can be pressed from any admin device; this keeps a
+// stuck button or several people pressing at once from hammering the API.
+const PLANNING_CENTER_MANUAL_REFRESH_MIN_MS = 10 * 1000;
+let planningCenterLastManualRefreshAt = 0;
+
+// Most recent Planning Center results, across every plan this server reads.
+const planningCenterHealth = {
+  lastSuccessAt: null,
+  lastAttemptAt: null,
+  lastErrorAt: null,
+  lastError: ""
+};
+
+function notePlanningCenterAttempt(error = null) {
+  const now = new Date().toISOString();
+  planningCenterHealth.lastAttemptAt = now;
+  if (error) {
+    planningCenterHealth.lastErrorAt = now;
+    planningCenterHealth.lastError = String(error.message || error);
+  } else {
+    planningCenterHealth.lastSuccessAt = now;
+    planningCenterHealth.lastError = "";
+  }
+}
+
+function secondsSince(isoTime) {
+  const time = Date.parse(isoTime || "");
+  return Number.isFinite(time)
+    ? Math.max(0, Math.round((Date.now() - time) / 1000))
+    : null;
+}
+
+function expirePlanningCenterCaches() {
+  // Expire instead of deleting so the last good data is still there to fall
+  // back on if this forced refresh fails.
+  for (const cache of [
+    planningCenterCoreCache,
+    planningCenterLiveCache,
+    kingdomBuildersCache
+  ]) {
+    for (const entry of cache.values()) entry.expiresAt = 0;
+  }
+  planningCenterServiceTypeCache.expiresAt = 0;
+}
+
 const planningCenterCoreCache = new Map();
 const planningCenterCorePending = new Map();
 const planningCenterLiveCache = new Map();
@@ -621,6 +834,7 @@ async function getPlanningCenterCoreData(
         expiresAt:
           Date.now() + PLANNING_CENTER_CORE_CACHE_MS
       });
+      notePlanningCenterAttempt();
 
       return {
         ...data,
@@ -629,6 +843,8 @@ async function getPlanningCenterCoreData(
         lastUpdatedAt: updatedAt
       };
     } catch (error) {
+      notePlanningCenterAttempt(error);
+
       if (cached?.data) {
         console.warn(
           "Planning Center refresh failed; using last successful data:",
@@ -3160,10 +3376,26 @@ async function getAllowedPlanningCenterServiceTypes(
     return planningCenterServiceTypeCache.serviceTypes;
   }
 
-  const response = await planningCenterRequest(
-    config,
-    "/services/v2/service_types?per_page=100"
-  );
+  let response;
+
+  try {
+    response = await planningCenterRequest(
+      config,
+      "/services/v2/service_types?per_page=100"
+    );
+  } catch (error) {
+    // Keep the dashboards running on the last known service types while
+    // Planning Center is unavailable instead of failing every request.
+    if (planningCenterServiceTypeCache.serviceTypes.length) {
+      console.warn(
+        "Planning Center service types refresh failed; using last list:",
+        error.message
+      );
+      planningCenterServiceTypeCache.expiresAt = now + (30 * 1000);
+      return planningCenterServiceTypeCache.serviceTypes;
+    }
+    throw error;
+  }
 
   const allowedOrder = new Map(
     SERVICE_PLAN_SELECTOR_ALLOWED_TYPES.map(
@@ -3562,6 +3794,100 @@ app.post(
 
 /*
 |--------------------------------------------------------------------------
+| Planning Center refresh + status
+|--------------------------------------------------------------------------
+*/
+
+function planningCenterStatusPayload() {
+  const ageSeconds = secondsSince(planningCenterHealth.lastSuccessAt);
+  return {
+    lastSuccessAt: planningCenterHealth.lastSuccessAt,
+    lastAttemptAt: planningCenterHealth.lastAttemptAt,
+    lastErrorAt: planningCenterHealth.lastErrorAt,
+    lastError: planningCenterHealth.lastError,
+    dataAgeSeconds: ageSeconds,
+    staleAfterSeconds: PLANNING_CENTER_STALE_AFTER_SECONDS,
+    stale:
+      ageSeconds === null ||
+      ageSeconds > PLANNING_CENTER_STALE_AFTER_SECONDS ||
+      Boolean(
+        planningCenterHealth.lastErrorAt &&
+        planningCenterHealth.lastErrorAt >= (planningCenterHealth.lastSuccessAt || "")
+      )
+  };
+}
+
+app.get("/api/planning-center/status", (req, res) => {
+  res.json(planningCenterStatusPayload());
+});
+
+// Forces fresh Planning Center data for every screen. Anyone on an admin
+// device can press it; it changes nothing, only re-reads Planning Center.
+app.post("/api/planning-center/refresh", async (req, res) => {
+  const now = Date.now();
+  const waitMs =
+    planningCenterLastManualRefreshAt +
+    PLANNING_CENTER_MANUAL_REFRESH_MIN_MS -
+    now;
+
+  if (waitMs > 0) {
+    return res.status(429).json({
+      error: "Refresh just ran",
+      detail: `Planning Center was refreshed a moment ago. Try again in ${Math.ceil(waitMs / 1000)} seconds.`,
+      status: planningCenterStatusPayload()
+    });
+  }
+
+  planningCenterLastManualRefreshAt = now;
+  expirePlanningCenterCaches();
+
+  try {
+    const config = loadConfig();
+    if (!config.planningCenter?.enabled) {
+      throw new Error("Planning Center is disabled");
+    }
+
+    // Re-read what the TVs show now so the answer reflects real data,
+    // plus whatever plan this device is previewing.
+    const control = loadExchangeControl();
+    const tvServiceTypeId = String(
+      control.serviceTypeId || config.planningCenter?.serviceTypeId || ""
+    );
+    const reads = [
+      getPlanningCenterCoreData(config, tvServiceTypeId, control.planId || "")
+    ];
+    const previewPlanId = String(req.body?.planId || "").trim();
+    const previewServiceTypeId = String(
+      req.body?.serviceTypeId || tvServiceTypeId
+    ).trim();
+    if (
+      previewPlanId &&
+      !(previewPlanId === control.planId && previewServiceTypeId === tvServiceTypeId)
+    ) {
+      await assertAllowedPlanningCenterServiceType(config, previewServiceTypeId);
+      reads.push(
+        getPlanningCenterCoreData(config, previewServiceTypeId, previewPlanId)
+      );
+    }
+
+    const results = await Promise.all(reads);
+    const failed = results.find((result) => result.stale);
+    if (failed) {
+      throw new Error(failed.cacheError || "Planning Center did not answer");
+    }
+
+    res.json({ ok: true, status: planningCenterStatusPayload() });
+  } catch (error) {
+    res.status(502).json({
+      error: "Planning Center could not be refreshed",
+      detail: `Planning Center could not be refreshed (${error.message}). The screens keep showing the last good data.`,
+      status: planningCenterStatusPayload()
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
 | Dashboard API
 |--------------------------------------------------------------------------
 */
@@ -3810,14 +4136,24 @@ app.get("/api/dashboard", async (req, res) => {
 
         dashboard.volunteers = volunteers;
 
+        const dataAgeSeconds = secondsSince(
+          planningCenterCore.lastUpdatedAt
+        );
+
         dashboard.planningCenter = {
           connected: true,
           cached: Boolean(planningCenterCore.cached),
-          stale: Boolean(planningCenterCore.stale),
+          stale:
+            Boolean(planningCenterCore.stale) ||
+            (dataAgeSeconds !== null &&
+              dataAgeSeconds > PLANNING_CENTER_STALE_AFTER_SECONDS),
           cacheError:
             planningCenterCore.cacheError || "",
           lastUpdatedAt:
             planningCenterCore.lastUpdatedAt || null,
+          dataAgeSeconds,
+          staleAfterSeconds: PLANNING_CENTER_STALE_AFTER_SECONDS,
+          lastAttemptAt: planningCenterHealth.lastAttemptAt,
           serviceTypeId,
           planId: plan.id,
           planTitle: plan.title,
@@ -3849,7 +4185,11 @@ app.get("/api/dashboard", async (req, res) => {
 
         dashboard.planningCenter = {
           connected: false,
-          error: error.message
+          stale: true,
+          error: error.message,
+          lastSuccessAt: planningCenterHealth.lastSuccessAt,
+          lastAttemptAt: planningCenterHealth.lastAttemptAt,
+          staleAfterSeconds: PLANNING_CENTER_STALE_AFTER_SECONDS
         };
       }
     } else {
@@ -3901,6 +4241,11 @@ app.get("/api/dashboard", async (req, res) => {
         worshipNotes: ""
       };
 
+    dashboard.manualBoardContent = {
+      ...dashboard.manualBoardContent,
+      notes: notesForPlan(manualGuestServiceTypeId, manualGuestPlanId)
+    };
+
     const streamData = config.demoMode
       ? (dashboard.stream || {
           connected: true,
@@ -3933,9 +4278,28 @@ app.get("/api/dashboard", async (req, res) => {
       activeTimersOnly: true
     };
 
+    // Which plan the TVs show. A phone/tablet preview passes its own planId in
+    // the query string; that view stays on that device and never changes this.
+    const tvControl = loadExchangeControl();
+    dashboard.tvControl = {
+      serviceTypeId: String(
+        tvControl.serviceTypeId ||
+        config.planningCenter?.serviceTypeId ||
+        ""
+      ),
+      planId: tvControl.planId || "",
+      mode: tvControl.planId ? "selected" : "automatic"
+    };
+    dashboard.deviceView = {
+      preview: Boolean(String(req.query.planId || "").trim()),
+      serviceTypeId: String(req.query.serviceTypeId || "").trim(),
+      planId: String(req.query.planId || "").trim()
+    };
+
     res.json({
       mode: config.demoMode ? "demo" : "live",
       refreshSeconds: config.refreshSeconds || 5,
+      serverTime: new Date().toISOString(),
       dashboard,
       statuses
     });
@@ -4033,6 +4397,72 @@ app.post(
     }
   }
 );
+
+/*
+|--------------------------------------------------------------------------
+| Plan notes API (TV 2 Notes section)
+|--------------------------------------------------------------------------
+*/
+
+function notePlanFrom(req) {
+  const source = { ...(req.query || {}), ...(req.body || {}) };
+  return {
+    serviceTypeId: String(source.serviceTypeId || "").trim(),
+    planId: String(source.planId || "").trim(),
+    planLabel: String(source.planLabel || "").trim()
+  };
+}
+
+app.get("/api/notes", (req, res) => {
+  const { serviceTypeId, planId } = notePlanFrom(req);
+  if (!serviceTypeId || !planId) {
+    return res.status(400).json({ error: "serviceTypeId and planId are required" });
+  }
+  res.json({ categories: NOTE_CATEGORIES, notes: notesForPlan(serviceTypeId, planId) });
+});
+
+app.post("/api/notes", requireDashboardManager, (req, res) => {
+  try {
+    const plan = notePlanFrom(req);
+    const notes = updatePlanNotes(plan.serviceTypeId, plan.planId, plan.planLabel, (list) => {
+      if (list.length >= MAX_NOTES_PER_PLAN) {
+        throw new Error(`A plan can hold up to ${MAX_NOTES_PER_PLAN} notes`);
+      }
+      list.push(normalizeNote(req.body || {}));
+      return list;
+    });
+    res.status(201).json({ ok: true, notes });
+  } catch (error) {
+    res.status(400).json({ error: "Note could not be added", detail: error.message });
+  }
+});
+
+app.put("/api/notes/:id", requireDashboardManager, (req, res) => {
+  try {
+    const plan = notePlanFrom(req);
+    const notes = updatePlanNotes(plan.serviceTypeId, plan.planId, plan.planLabel, (list) => {
+      const index = list.findIndex((note) => String(note.id) === String(req.params.id));
+      if (index < 0) throw new Error("That note was not found. It may have been deleted on another device.");
+      list[index] = normalizeNote(req.body || {}, list[index]);
+      return list;
+    });
+    res.json({ ok: true, notes });
+  } catch (error) {
+    res.status(400).json({ error: "Note could not be updated", detail: error.message });
+  }
+});
+
+app.delete("/api/notes/:id", requireDashboardManager, (req, res) => {
+  try {
+    const plan = notePlanFrom(req);
+    const notes = updatePlanNotes(plan.serviceTypeId, plan.planId, plan.planLabel, (list) =>
+      list.filter((note) => String(note.id) !== String(req.params.id))
+    );
+    res.json({ ok: true, notes });
+  } catch (error) {
+    res.status(400).json({ error: "Note could not be deleted", detail: error.message });
+  }
+});
 
 /*
 |--------------------------------------------------------------------------

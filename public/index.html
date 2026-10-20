@@ -10,9 +10,10 @@
   <link rel="stylesheet" href="/claude.css?v=claude-3">
   <!-- Same data engine as the original dashboard: /app.js reads /api/dashboard,
        which uses the Planning Center connection configured on Render. -->
-  <script src="/app.js?v=claude-3" defer></script>
+  <script src="/app.js?v=exchange-4.10" defer></script>
   <script src="/clock.js?v=claude-3" defer></script>
   <link rel="stylesheet" href="/exchange-brand.css?v=exchange-20261004">
+  <link rel="stylesheet" href="/exchange-admin.css?v=exchange-4.10">
 </head>
 <body class="exchange-board">
   <div id="app" class="app-shell">
@@ -24,6 +25,7 @@
       <a href="/?screen=2" data-screen-link="2">Worship</a>
       <a href="/?screen=3" data-screen-link="3">Order</a>
       <a href="/exchange-input.html" class="setup-link">Manager</a>
+      <a href="?admin=1" id="toolsLink" class="setup-link">Tools</a>
       <a href="/original.html?screen=all" class="setup-link">Original</a>
       <a href="#" id="controllerLink" hidden>Control</a>
     </nav>
@@ -162,6 +164,67 @@
         </footer>
       </section>
     </main>
+
+
+    <!-- Admin tools: only on devices that turned them on. TVs never show this. -->
+    <div id="adminTools" class="admin-tools" hidden>
+      <div id="adminPanel" class="admin-panel" hidden>
+        <div class="admin-row">
+          <div>
+            <div class="admin-kicker">Planning Center</div>
+            <div id="adminPcoStatus" class="admin-status">Waiting for Planning Center</div>
+          </div>
+          <button id="adminRefreshButton" class="admin-button" type="button">Refresh now</button>
+        </div>
+
+        <div class="admin-block">
+          <div class="admin-kicker">TVs are showing</div>
+          <div id="adminTvPlan" class="admin-value">Loading…</div>
+        </div>
+
+        <label class="admin-block admin-field">
+          <span class="admin-kicker">This device is showing</span>
+          <select id="adminPlanSelect" aria-describedby="adminDeviceNote">
+            <option value="">Same as the TVs</option>
+          </select>
+          <span id="adminDeviceNote" class="admin-note">Picking another plan changes only this device.</span>
+        </label>
+
+        <div class="admin-actions">
+          <button id="adminPushButton" class="admin-button admin-primary" type="button" disabled>Show this plan on the TVs…</button>
+          <button id="adminAutoButton" class="admin-button" type="button">TVs back to automatic…</button>
+        </div>
+
+        <p id="adminMessage" class="admin-message" role="status"></p>
+
+        <div class="admin-links">
+          <a href="/exchange-input.html">Manager</a>
+          <button id="adminHideButton" class="admin-link-button" type="button">Hide tools on this device</button>
+        </div>
+      </div>
+      <button id="adminToggle" class="admin-toggle" type="button" aria-expanded="false" aria-controls="adminPanel">
+        <span class="admin-toggle-dot" aria-hidden="true"></span>
+        <span id="adminToggleLabel">Tools</span>
+      </button>
+
+      <dialog id="adminPinDialog" class="admin-dialog" aria-labelledby="adminPinTitle">
+        <form id="adminPinForm" method="dialog">
+          <div class="admin-kicker">Change the TVs</div>
+          <h2 id="adminPinTitle">Show this plan on the TVs?</h2>
+          <p id="adminPinPlan" class="admin-value"></p>
+          <p class="admin-note">This changes TV 1, TV 2 and TV 3 for everyone. Enter the Dashboard PIN to confirm. It is not saved on this device.</p>
+          <label class="admin-field">
+            <span class="admin-kicker">PIN</span>
+            <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN">
+          </label>
+          <p id="adminPinMessage" class="admin-message" role="alert"></p>
+          <div class="admin-actions">
+            <button id="adminPinCancel" class="admin-button" type="button">Cancel</button>
+            <button id="adminPinSubmit" class="admin-button admin-primary" type="submit">Change the TVs</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
 
     <aside id="debugPanel" class="debug-panel" hidden>
       <h2>Diagnostics</h2>

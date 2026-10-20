@@ -1,0 +1,165 @@
+/* The Exchange v4.10: Planning Center freshness, plan notes, and the
+   phone/tablet tools panel. Loaded after exchange-brand.css and uses its tokens. */
+
+:root {
+  --note-general: #c1b4ce;
+  --note-worship: var(--orange, #ff963d);
+  --note-production: var(--violet, #a886ff);
+  --note-students: #6fd3c1;
+  --note-follow-up: #ffd166;
+  --stale: #ffb86b;
+}
+
+/* ---------- TV mode: nothing but the board ---------- */
+body.tv-mode .screen-nav { display: none !important; }
+
+/* ---------- Planning Center freshness (footer) ---------- */
+.exchange-board [data-last-updated] { text-align: right; }
+.exchange-board [data-last-updated].is-stale {
+  color: var(--ink);
+  background: var(--stale);
+  font-weight: 700;
+  padding: .15em .6em;
+  border-radius: .25rem;
+  letter-spacing: .02em;
+}
+.exchange-board [data-last-updated].is-stale::before { content: "⚠ "; }
+body.exchange-board.pco-stale .tv-footer { border-top-color: var(--stale); }
+
+/* ---------- Plan notes (Worship TV) ---------- */
+.exchange-board .manual-notes-content .plan-notes {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: calc(var(--gap) * .7);
+}
+.exchange-board .manual-notes-content .plan-note {
+  display: grid; grid-template-columns: 4.9em minmax(0, 1fr); align-items: center;
+  column-gap: calc(var(--gap) * 1.2);
+  padding: calc(var(--gap) * .7) calc(var(--gap) * .9);
+  background: var(--panel); border-radius: var(--r);
+  border-left: 3px solid var(--line);
+}
+.exchange-board .manual-notes-content .plan-note.is-pinned {
+  border-left-color: var(--orange);
+  background: color-mix(in srgb, var(--orange) 9%, var(--panel));
+}
+.note-meta { display: inline-flex; flex-direction: column; align-items: stretch; gap: .3em; text-align: center; }
+.note-pin, .note-category {
+  font-family: var(--cond); font-weight: 700; line-height: 1;
+  font-size: .62em; letter-spacing: .08em; text-transform: uppercase;
+  padding: .32em .5em; border-radius: .2rem; white-space: nowrap;
+}
+.note-pin { color: var(--ink); background: var(--orange); }
+.note-category { border: 1px solid currentColor; }
+.note-cat-general { color: var(--note-general); }
+.note-cat-worship { color: var(--note-worship); }
+.note-cat-production { color: var(--note-production); }
+.note-cat-students { color: var(--note-students); }
+.note-cat-follow-up { color: var(--note-follow-up); }
+.note-text { overflow-wrap: anywhere; }
+body.exchange-board.screen-all .manual-notes-content .plan-note { padding: .35rem .5rem; column-gap: .5rem; grid-template-columns: 5.4em minmax(0, 1fr); }
+
+/* ---------- Tools panel (admin devices only) ---------- */
+.admin-tools {
+  position: fixed; z-index: 40;
+  right: max(.75rem, env(safe-area-inset-right));
+  bottom: max(.75rem, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: flex-end; gap: .5rem;
+  font-family: var(--body); font-size: 15px; line-height: 1.35;
+  color: var(--text);
+}
+.admin-toggle {
+  display: inline-flex; align-items: center; gap: .5rem;
+  min-height: 44px; padding: .5rem 1rem;
+  font: 700 .95rem/1 var(--cond); letter-spacing: .05em; text-transform: uppercase;
+  color: var(--text); background: rgba(18, 11, 28, .94);
+  border: 1px solid var(--line); border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .45); cursor: pointer;
+}
+.admin-toggle-dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--violet); }
+.admin-toggle[data-preview="1"] { border-color: var(--orange); color: var(--orange); }
+.admin-toggle[data-preview="1"] .admin-toggle-dot { background: var(--orange); }
+.admin-toggle:focus-visible, .admin-button:focus-visible, .admin-link-button:focus-visible,
+.admin-panel select:focus-visible, .admin-dialog input:focus-visible {
+  outline: 2px solid var(--orange); outline-offset: 2px;
+}
+
+.admin-panel {
+  width: min(24rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 6rem); overflow: auto;
+  display: grid; gap: .9rem; padding: 1rem;
+  background: var(--panel); border: 1px solid var(--line); border-radius: .6rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .55);
+}
+.admin-panel[hidden] { display: none; }
+.admin-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.admin-block { display: grid; gap: .3rem; }
+.admin-kicker {
+  font: 700 .72rem/1.2 var(--cond); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--violet);
+}
+.admin-value { margin: 0; font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
+.admin-status { font-weight: 600; }
+.admin-status[data-stale="1"] { color: var(--stale); }
+.admin-note { margin: 0; color: var(--muted); font-size: .85rem; }
+.admin-field { display: grid; gap: .35rem; }
+.admin-panel select, .admin-dialog input {
+  width: 100%; min-height: 44px; padding: .5rem .65rem;
+  font: 500 16px/1.2 var(--body); color: var(--text);
+  background: var(--ink); border: 1px solid var(--line); border-radius: .35rem;
+}
+.admin-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.admin-button {
+  min-height: 44px; padding: .55rem .9rem;
+  font: 700 .9rem/1.1 var(--cond); letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: .35rem; cursor: pointer;
+}
+.admin-button:hover:not(:disabled) { border-color: var(--violet); }
+.admin-button.admin-primary { color: var(--ink); background: var(--orange); border-color: var(--orange); }
+.admin-button:disabled { opacity: .45; cursor: not-allowed; }
+.admin-actions .admin-button { flex: 1 1 auto; }
+.admin-panel .admin-message:empty { display: none; }
+.admin-button[hidden] { display: none; }
+.admin-message { margin: 0; min-height: 1.2em; font-size: .88rem; color: var(--muted); }
+.admin-message[data-type="success"] { color: #7fe0a8; }
+.admin-message[data-type="error"], .admin-dialog .admin-message { color: #ff9aa8; }
+.admin-links {
+  display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+  padding-top: .75rem; border-top: 1px solid var(--line); font-size: .88rem;
+}
+.admin-links a { color: var(--orange); font-weight: 600; }
+.admin-link-button {
+  padding: .25rem 0; font: inherit; color: var(--muted); background: none; border: 0;
+  text-decoration: underline; cursor: pointer;
+}
+
+/* "Preview" flag on the board itself, so nobody mistakes it for the TVs. */
+body.device-preview .tv-screen { outline: 3px dashed var(--orange); outline-offset: -3px; }
+body.device-preview .tv-screen .x-header::after {
+  content: "PREVIEW · THIS DEVICE ONLY";
+  grid-column: 1 / -1;
+  justify-self: start;
+  font: 700 clamp(.7rem, calc(1.6 * var(--s)), 1.1rem)/1 var(--cond); letter-spacing: .1em;
+  color: var(--ink); background: var(--orange);
+  padding: .35em .6em; border-radius: .2rem;
+}
+
+.admin-dialog {
+  width: min(26rem, calc(100vw - 2rem)); padding: 1.2rem;
+  color: var(--text); background: var(--panel);
+  border: 1px solid var(--line); border-radius: .6rem;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, .6);
+}
+.admin-dialog::backdrop { background: rgba(8, 4, 14, .72); }
+.admin-dialog form { display: grid; gap: .8rem; }
+.admin-dialog h2 { margin: 0; font: 700 1.5rem/1.1 var(--cond); }
+
+@media (max-width: 520px) {
+  .admin-panel { width: calc(100vw - 1.5rem); }
+  .admin-actions .admin-button { flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-panel { animation: admin-rise .16s ease-out; }
+  @keyframes admin-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}

@@ -8,9 +8,10 @@
   <link rel="icon" type="image/png" href="/exchange-mark.png?v=exchange-20261004">
   <link rel="apple-touch-icon" href="/exchange-mark.png?v=exchange-20261004">
   <link rel="manifest" href="/dashboard-manager.webmanifest">
-  <link rel="stylesheet" href="/exchange-input.css?v=20260910-exchange-v491">
-  <script src="/exchange-input.js?v=20260910-exchange-v491" defer></script>
+  <link rel="stylesheet" href="/exchange-input.css?v=exchange-4.10">
+  <script src="/exchange-input.js?v=exchange-4.10" defer></script>
   <link rel="stylesheet" href="/exchange-brand.css?v=exchange-20261004">
+  <link rel="stylesheet" href="/exchange-manager.css?v=exchange-4.10">
 </head>
 <body class="exchange-manager">
   <main class="input-shell">
@@ -20,7 +21,7 @@
         <div>
           <div class="eyebrow">THE EXCHANGE</div>
           <h1>Dashboard Manager</h1>
-          <p>Choose the Exchange plan used by all three TVs and enter the manual content for that plan.</p>
+          <p>Pick a plan to edit its content and notes. Changing what the TVs show takes the PIN every time.</p>
         </div>
       </div>
       <nav class="input-nav" aria-label="Exchange dashboard manager navigation">
@@ -76,9 +77,32 @@
         </label>
       </div>
 
-      <div class="button-row">
-        <button id="usePlanButton" class="primary-button" type="button">Use Selected Plan on All TVs</button>
-        <button id="autoPlanButton" class="secondary-button" type="button">Return to Automatic Upcoming Plan</button>
+      <div class="pco-status-row">
+        <div>
+          <div class="card-kicker">PLANNING CENTER DATA</div>
+          <div id="pcoStatus" class="pco-status">Checking…</div>
+        </div>
+        <button id="refreshPcoButton" class="secondary-button" type="button">Refresh Planning Center now</button>
+      </div>
+
+      <div class="device-row">
+        <a id="previewLink" class="secondary-button link-button" href="/?screen=all">Preview this plan on this device</a>
+        <span class="field-hint">Opens the dashboard here with this plan. The TVs do not change.</span>
+      </div>
+
+      <div class="tv-change">
+        <div class="card-kicker">CHANGE THE TVS</div>
+        <p class="field-hint">This changes TV 1, TV 2 and TV 3 for everyone. Enter the PIN each time; it is not saved.</p>
+        <div class="tv-change-grid">
+          <label class="field">
+            <span>PIN</span>
+            <input id="tvPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN">
+          </label>
+          <div class="button-row">
+            <button id="usePlanButton" class="primary-button" type="button">Show Selected Plan on All TVs</button>
+            <button id="autoPlanButton" class="secondary-button" type="button">TVs Back to Automatic Upcoming Plan</button>
+          </div>
+        </div>
       </div>
       <p id="planMessage" class="message" role="status"></p>
     </section>
@@ -106,11 +130,6 @@
             <small>Shown in the Verse of the Day section on the Communication TV.</small>
           </label>
 
-          <label class="field manual-field manual-field-wide">
-            <span>Worship Notes — TV 2</span>
-            <textarea id="worshipNotesInput" maxlength="5000" placeholder="Enter notes to show directly below Tonight's Songs. One note per line works best."></textarea>
-            <small>Shown below Tonight's Songs on the Worship TV.</small>
-          </label>
         </div>
 
         <div class="button-row save-row">
@@ -120,12 +139,65 @@
       </form>
     </section>
 
+    <section class="manager-card notes-card">
+      <div class="card-heading">
+        <div>
+          <div class="card-kicker">NOTES — WORSHIP TV</div>
+          <h2>Plan Notes</h2>
+        </div>
+        <div id="notesPlanLabel" class="editing-plan-label">Select a plan</div>
+      </div>
+
+      <form id="noteForm" class="note-form">
+        <label class="field note-text-field">
+          <span id="noteFormLabel">New note</span>
+          <textarea id="noteTextInput" maxlength="600" rows="2" placeholder="Type a note for this plan"></textarea>
+        </label>
+        <div class="note-form-row">
+          <label class="field">
+            <span>Category</span>
+            <select id="noteCategoryInput">
+              <option>General</option>
+              <option>Worship</option>
+              <option>Production</option>
+              <option>Students</option>
+              <option>Follow-up</option>
+            </select>
+          </label>
+          <label class="check-field">
+            <input id="notePinnedInput" type="checkbox">
+            <span>Pin to the top</span>
+          </label>
+          <div class="button-row">
+            <button id="noteCancelButton" class="secondary-button" type="button" hidden>Cancel Edit</button>
+            <button id="noteSaveButton" class="primary-button" type="submit">Add Note</button>
+          </div>
+        </div>
+      </form>
+      <p id="notesMessage" class="message" role="status"></p>
+      <ul id="notesList" class="notes-list" aria-label="Notes for this plan"></ul>
+    </section>
+
+    <section class="manager-card device-card">
+      <div class="card-heading">
+        <div>
+          <div class="card-kicker">THIS DEVICE</div>
+          <h2>Dashboard Tools</h2>
+          <p class="field-hint">Shows a Tools button on the dashboard on this phone, tablet or PC only, for previewing plans and refreshing Planning Center. Never turn this on for a TV.</p>
+        </div>
+      </div>
+      <label class="check-field">
+        <input id="adminDeviceToggle" type="checkbox">
+        <span>Show dashboard tools on this device</span>
+      </label>
+    </section>
+
     <section class="manager-card help-card">
       <div class="card-kicker">HOW THIS BOARD WORKS</div>
       <div class="help-grid">
-        <div><strong>1.</strong><span>Select the Exchange service plan.</span></div>
-        <div><strong>2.</strong><span>Click “Use Selected Plan on All TVs” if you want to force that plan onto TV 1, TV 2, and TV 3.</span></div>
-        <div><strong>3.</strong><span>Enter announcements, the Verse of the Day, and worship notes, then save.</span></div>
+        <div><strong>1.</strong><span>Select a plan. This only picks what you are editing; the TVs do not change.</span></div>
+        <div><strong>2.</strong><span>Enter announcements and the Verse of the Day, then save. Add, pin, edit or delete notes below.</span></div>
+        <div><strong>3.</strong><span>To change what the TVs show, enter the PIN and tap “Show Selected Plan on All TVs”.</span></div>
       </div>
     </section>
   </main>

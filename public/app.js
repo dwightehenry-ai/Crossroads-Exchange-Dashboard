@@ -14,6 +14,74 @@ const debugEnabled = params.get('debug') === '1';
 const autoFitEnabled = params.get('fit') !== 'off';
 let fitTimer = null;
 
+/*
+| Display modes
+| - TV mode (/tv1, /tv2, /tv3 add tv=1): clean and read-only. No navigation,
+|   no tools, and always the plan the TVs are set to.
+| - Admin tools: only on a phone/tablet/PC that has turned them on (?admin=1,
+|   or "Show tools on this device" in the Manager). A plan picked there is a
+|   preview for that device only. Changing the TVs takes the PIN every time.
+*/
+const ADMIN_DEVICE_KEY = 'exchangeAdminDevice';
+const DEVICE_PREVIEW_KEY = 'exchangeDevicePreview';
+const tvMode = params.get('tv') === '1';
+
+function storageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function storageSet(key, value) {
+  try {
+    if (value === null || value === undefined) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch { /* private mode: tools still work for this visit */ }
+}
+
+(function applyAdminUrlFlags() {
+  if (tvMode) return;
+  let changed = false;
+  if (params.get('admin') === '1') { storageSet(ADMIN_DEVICE_KEY, '1'); changed = true; }
+  if (params.get('admin') === '0') { storageSet(ADMIN_DEVICE_KEY, null); storageSet(DEVICE_PREVIEW_KEY, null); changed = true; }
+  const previewPlanId = text(params.get('previewPlan'));
+  if (previewPlanId) {
+    storageSet(ADMIN_DEVICE_KEY, '1');
+    storageSet(DEVICE_PREVIEW_KEY, JSON.stringify({
+      serviceTypeId: text(params.get('previewServiceType')),
+      planId: previewPlanId
+    }));
+    changed = true;
+  }
+  if (changed) {
+    ['admin', 'previewPlan', 'previewServiceType'].forEach((key) => params.delete(key));
+    const query = params.toString();
+    history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}`);
+  }
+})();
+
+const adminMode = !tvMode && storageGet(ADMIN_DEVICE_KEY) === '1';
+
+function devicePreview() {
+  if (!adminMode) return null;
+  try {
+    const stored = JSON.parse(storageGet(DEVICE_PREVIEW_KEY) || 'null');
+    return stored && text(stored.planId) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function dashboardUrl() {
+  const preview = devicePreview();
+  if (!preview) return API_URL;
+  const query = new URLSearchParams({ planId: preview.planId });
+  if (text(preview.serviceTypeId)) query.set('serviceTypeId', preview.serviceTypeId);
+  return `${API_URL}?${query}`;
+}
+
+function viewKey() {
+  const preview = devicePreview();
+  return preview ? `preview:${preview.serviceTypeId}:${preview.planId}` : 'tv';
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : value == null ? [] : [value];
 }
@@ -97,6 +165,10 @@ function setupControllerLink() {
 function setupScreenMode() {
   document.body.classList.toggle('screen-single', requestedScreen !== 'all');
   document.body.classList.toggle('screen-all', requestedScreen === 'all');
+  document.body.classList.toggle('tv-mode', tvMode);
+  document.body.classList.toggle('admin-device', adminMode);
+  const nav = document.querySelector('.screen-nav');
+  if (nav && tvMode) nav.hidden = true;
   document.querySelectorAll('[data-screen]').forEach((el) => {
     el.classList.toggle('is-active', requestedScreen === 'all' || el.dataset.screen === requestedScreen);
   });
@@ -568,13 +640,37 @@ function renderCommunicationBoard(groups, planningCenter = {}, manualBoardConten
   }
 }
 
+const NOTE_CATEGORY_CLASSES = {
+  general: 'general', worship: 'worship', production: 'production',
+  students: 'students', 'follow-up': 'follow-up'
+};
+
 function renderManualNotes(manualBoardContent = {}) {
   const el = $('manualNotesContent');
   if (!el) return;
-  const notes = textLines(manualBoardContent.worshipNotes);
-  el.innerHTML = notes.length
-    ? `<ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
-    : '<div class="notes-empty-text">No notes entered.</div>';
+
+  // Structured notes (pinned + category). Older servers only send the text box.
+  const notes = Array.isArray(manualBoardContent.notes)
+    ? manualBoardContent.notes.filter((note) => text(note?.text))
+    : textLines(manualBoardContent.worshipNotes).map((line) => ({ text: line, category: 'General', pinned: false }));
+
+  if (!notes.length) {
+    el.innerHTML = '<div class="notes-empty-text">No notes entered.</div>';
+    return;
+  }
+
+  el.innerHTML = `<ul class="plan-notes">${notes.map((note) => {
+    const category = first(note.category, 'General');
+    const categoryClass = NOTE_CATEGORY_CLASSES[normalize(category)] || 'general';
+    return `
+      <li class="plan-note${note.pinned ? ' is-pinned' : ''}">
+        <span class="note-meta">
+          ${note.pinned ? '<span class="note-pin" aria-label="Pinned">PINNED</span>' : ''}
+          <span class="note-category note-cat-${categoryClass}">${escapeHtml(category)}</span>
+        </span>
+        <span class="note-text">${escapeHtml(note.text)}</span>
+      </li>`;
+  }).join('')}</ul>`;
 }
 
 function renderPeople(containerId, members, emptyMessage, kind = '') {
@@ -879,9 +975,65 @@ function renderHeader(planningCenter = {}, dashboard = {}) {
   document.querySelectorAll('[data-plan-title]').forEach((el) => { el.textContent = planTitle; });
 }
 
+/*
+| Planning Center freshness. The server reports how old its data is
+| (dataAgeSeconds), which avoids trusting each TV's own clock.
+*/
+const DEFAULT_STALE_AFTER_SECONDS = 180;
+const freshness = {
+  updatedAtIso: null,        // when Planning Center last answered (server time)
+  receivedAtMs: 0,           // when this device got that answer
+  ageAtReceiptSeconds: 0,
+  staleAfterSeconds: DEFAULT_STALE_AFTER_SECONDS,
+  serverSaysStale: false,
+  showingFallback: false
+};
+
+function noteFreshness(planningCenter = {}, { fallback = false } = {}) {
+  if (!fallback) {
+    freshness.updatedAtIso = planningCenter.lastUpdatedAt || freshness.updatedAtIso;
+    freshness.receivedAtMs = Date.now();
+    freshness.ageAtReceiptSeconds = Number(planningCenter.dataAgeSeconds) || 0;
+  }
+  freshness.staleAfterSeconds = Number(planningCenter.staleAfterSeconds) || DEFAULT_STALE_AFTER_SECONDS;
+  freshness.serverSaysStale = Boolean(planningCenter.stale);
+  freshness.showingFallback = fallback;
+}
+
+function planningCenterAgeSeconds() {
+  if (!freshness.receivedAtMs) return null;
+  return freshness.ageAtReceiptSeconds + (Date.now() - freshness.receivedAtMs) / 1000;
+}
+
+function isDataStale() {
+  const age = planningCenterAgeSeconds();
+  return freshness.showingFallback ||
+    freshness.serverSaysStale ||
+    (age !== null && age > freshness.staleAfterSeconds);
+}
+
+function formatClockTime(iso) {
+  const date = new Date(iso || '');
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
 function renderFooter() {
-  const stamp = `UPDATED ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
-  document.querySelectorAll('[data-last-updated]').forEach((el) => { el.textContent = stamp; });
+  const updated = formatClockTime(freshness.updatedAtIso);
+  const stale = isDataStale();
+  const label = !updated
+    ? 'Waiting for Planning Center'
+    : stale
+      ? `Planning Center data may be outdated · last updated ${updated}`
+      : `Planning Center updated ${updated}`;
+
+  document.querySelectorAll('[data-last-updated]').forEach((el) => {
+    el.textContent = label;
+    el.classList.toggle('is-stale', Boolean(updated && stale));
+  });
+  document.body.classList.toggle('pco-stale', Boolean(updated && stale));
+  updateAdminStatus();
 }
 
 function renderDebug(planningCenter, groups) {
@@ -903,11 +1055,50 @@ function renderDebug(planningCenter, groups) {
     <table class="debug-table"><thead><tr><th>Seq</th><th>Title</th><th>Type</th><th>Song</th><th>Key</th></tr></thead><tbody>${items}</tbody></table>`;
 }
 
-function renderDashboard(payload) {
+// Last good Planning Center data for each view (the TV plan, or a device
+// preview). If Planning Center stops answering, the screens keep showing it.
+const lastGoodByView = new Map();
+
+function withFallback(payload) {
   const dashboard = payload?.dashboard || payload || {};
   const planningCenter = dashboard.planningCenter || {};
+  const key = viewKey();
 
-  if (planningCenter.connected === false) {
+  if (planningCenter.connected !== false) {
+    lastGoodByView.set(key, {
+      planningCenter,
+      manualBoardContent: dashboard.manualBoardContent || {}
+    });
+    noteFreshness(planningCenter);
+    return { dashboard, fallback: false };
+  }
+
+  const lastGood = lastGoodByView.get(key);
+  if (!lastGood) {
+    noteFreshness(planningCenter, { fallback: true });
+    return { dashboard, fallback: false, noData: true };
+  }
+
+  noteFreshness(planningCenter, { fallback: true });
+  return {
+    fallback: true,
+    dashboard: {
+      ...dashboard,
+      planningCenter: { ...lastGood.planningCenter, stale: true },
+      manualBoardContent: text(dashboard.manualBoardContent?.planId)
+        ? dashboard.manualBoardContent
+        : lastGood.manualBoardContent
+    }
+  };
+}
+
+function renderDashboard(payload) {
+  const resolved = withFallback(payload);
+  const dashboard = resolved.dashboard;
+  const planningCenter = dashboard.planningCenter || {};
+  latestDashboard = dashboard;
+
+  if (resolved.noData) {
     setError(`Planning Center: ${first(planningCenter.error, 'not connected')}`);
   } else {
     setError('');
@@ -944,23 +1135,327 @@ function renderDashboard(payload) {
   if (nextMs !== refreshMs) refreshMs = nextMs;
 }
 
+let latestDashboard = null;
+let refreshSequence = 0;
+
 async function refresh() {
+  const sequence = ++refreshSequence;
+  const requestedView = viewKey();
   try {
-    const response = await fetch(API_URL, { cache: 'no-store', headers: { Accept: 'application/json' } });
+    const response = await fetch(dashboardUrl(), { cache: 'no-store', headers: { Accept: 'application/json' } });
     if (!response.ok) throw new Error(`Dashboard API returned HTTP ${response.status}`);
     const payload = await response.json();
-    renderDashboard(payload);
+    // Ignore an answer for a view this device has already switched away from.
+    if (sequence === refreshSequence && requestedView === viewKey()) renderDashboard(payload);
   } catch (error) {
     console.error(error);
-    setError(error.message || 'Exchange Dashboard could not load.');
+    // Keep whatever is on screen. Only show an error if nothing ever loaded.
+    if (!lastGoodByView.size) setError(error.message || 'Exchange Dashboard could not load.');
+    renderFooter();
   } finally {
-    clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(refresh, refreshMs);
+    if (sequence === refreshSequence) {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(refresh, refreshMs);
+    }
   }
+}
+
+function refreshNow() {
+  clearTimeout(refreshTimer);
+  return refresh();
+}
+
+/*
+|--------------------------------------------------------------------------
+| Admin tools (phones/tablets/PCs that turned them on; never on TVs)
+|--------------------------------------------------------------------------
+*/
+
+const admin = {
+  context: null,      // plans list + TV selection from the server
+  loadingPlans: null,
+  pendingTvPlanId: null
+};
+
+function adminPlanLabel(plan) {
+  if (!plan) return '';
+  const title = plan.title && plan.title !== 'Untitled Plan' ? plan.title : '';
+  return [plan.shortDates || plan.dates, title].filter(Boolean).join(' — ') || String(plan.id || '');
+}
+
+function adminPlans() {
+  return Array.isArray(admin.context?.plans) ? admin.context.plans : [];
+}
+
+function tvSelection() {
+  const fromDashboard = latestDashboard?.tvControl;
+  const control = fromDashboard || admin.context?.control || {};
+  return {
+    serviceTypeId: text(control.serviceTypeId || admin.context?.defaultServiceTypeId),
+    planId: text(control.planId)
+  };
+}
+
+// The plan the TVs are actually on. On automatic that is the next upcoming plan.
+function tvActualPlanId() {
+  const tv = tvSelection();
+  return tv.planId || text(adminPlans()[0]?.id);
+}
+
+function tvPlanLabel() {
+  const tv = tvSelection();
+  if (!tv.planId) {
+    const upcoming = adminPlans()[0];
+    return upcoming ? `Automatic — ${adminPlanLabel(upcoming)}` : 'Automatic — next upcoming plan';
+  }
+  const plan = adminPlans().find((entry) => String(entry.id) === tv.planId);
+  return plan ? adminPlanLabel(plan) : 'A selected plan';
+}
+
+function adminEl(id) { return document.getElementById(id); }
+
+function setAdminMessage(message, type = '') {
+  const el = adminEl('adminMessage');
+  if (!el) return;
+  el.textContent = message || '';
+  el.dataset.type = type;
+}
+
+async function adminJson(url, options = {}) {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    ...options,
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(options.headers || {}) }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload.detail || payload.error || `HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
+async function loadAdminPlans() {
+  if (admin.loadingPlans) return admin.loadingPlans;
+  admin.loadingPlans = adminJson('/api/exchange-input-context')
+    .then((context) => {
+      admin.context = context;
+      renderAdminPlanSelect();
+      updateAdminStatus();
+    })
+    .catch((error) => setAdminMessage(`Plans could not load: ${error.message}`, 'error'))
+    .finally(() => { admin.loadingPlans = null; });
+  return admin.loadingPlans;
+}
+
+function renderAdminPlanSelect() {
+  const select = adminEl('adminPlanSelect');
+  if (!select) return;
+  const preview = devicePreview();
+  const plans = adminPlans();
+  select.innerHTML = [
+    '<option value="">Same as the TVs</option>',
+    ...plans.map((plan) => `<option value="${escapeHtml(plan.id)}">${escapeHtml(adminPlanLabel(plan))}</option>`)
+  ].join('');
+  const selectedId = preview ? String(preview.planId) : '';
+  if (selectedId && !plans.some((plan) => String(plan.id) === selectedId)) {
+    select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(selectedId)}">Saved preview plan</option>`);
+  }
+  select.value = selectedId;
+}
+
+function updateAdminStatus() {
+  if (!adminMode) return;
+  const preview = devicePreview();
+  const tv = tvSelection();
+  const previewing = Boolean(preview && String(preview.planId) !== tvActualPlanId());
+  document.body.classList.toggle('device-preview', previewing);
+
+  const toggle = adminEl('adminToggle');
+  if (toggle) toggle.dataset.preview = previewing ? '1' : '0';
+  const toggleLabel = adminEl('adminToggleLabel');
+  if (toggleLabel) toggleLabel.textContent = previewing ? 'Preview · this device only' : 'Tools';
+
+  const tvLabel = adminEl('adminTvPlan');
+  if (tvLabel) tvLabel.textContent = tvPlanLabel();
+
+  const deviceLabel = adminEl('adminDeviceNote');
+  if (deviceLabel) {
+    deviceLabel.textContent = previewing
+      ? 'This screen is showing a different plan than the TVs. Only this device is affected.'
+      : 'This screen matches the TVs. Picking another plan changes only this device.';
+  }
+
+  const pushButton = adminEl('adminPushButton');
+  if (pushButton) {
+    pushButton.disabled = !previewing;
+    pushButton.title = previewing ? '' : 'Pick a plan above first';
+  }
+
+  const autoButton = adminEl('adminAutoButton');
+  if (autoButton) {
+    autoButton.hidden = !tv.planId;  // already automatic: nothing to undo
+  }
+
+  const status = adminEl('adminPcoStatus');
+  if (status) {
+    const updated = formatClockTime(freshness.updatedAtIso);
+    status.textContent = updated
+      ? `${isDataStale() ? 'May be outdated — last updated' : 'Updated'} ${updated}`
+      : 'Waiting for Planning Center';
+    status.dataset.stale = isDataStale() ? '1' : '0';
+  }
+}
+
+function setDevicePreview(planId) {
+  const id = text(planId);
+  const tv = tvSelection();
+  const sameAsTvs = !id || id === tvActualPlanId();
+  if (sameAsTvs) {
+    storageSet(DEVICE_PREVIEW_KEY, null);
+  } else {
+    storageSet(DEVICE_PREVIEW_KEY, JSON.stringify({
+      serviceTypeId: text(admin.context?.serviceType?.id) || tv.serviceTypeId,
+      planId: id
+    }));
+  }
+  renderAdminPlanSelect();
+  updateAdminStatus();
+  setAdminMessage(sameAsTvs ? 'Back to the TV plan on this device.' : 'Loading that plan on this device…');
+  refreshNow().then(() => setAdminMessage(''));
+}
+
+async function adminRefreshPlanningCenter() {
+  const button = adminEl('adminRefreshButton');
+  if (button) button.disabled = true;
+  setAdminMessage('Asking Planning Center for the latest…');
+  try {
+    const preview = devicePreview();
+    await adminJson('/api/planning-center/refresh', {
+      method: 'POST',
+      body: JSON.stringify(preview ? { serviceTypeId: preview.serviceTypeId, planId: preview.planId } : {})
+    });
+    await refreshNow();
+    await loadAdminPlans();
+    setAdminMessage(`Refreshed at ${formatClockTime(new Date().toISOString())}. The TVs pick it up within a few seconds.`, 'success');
+  } catch (error) {
+    setAdminMessage(error.message, error.status === 429 ? '' : 'error');
+  } finally {
+    if (button) setTimeout(() => { button.disabled = false; }, 3000);
+  }
+}
+
+function openPinDialog(planId) {
+  const dialog = adminEl('adminPinDialog');
+  if (!dialog) return;
+  admin.pendingTvPlanId = planId;
+  const plan = adminPlans().find((entry) => String(entry.id) === String(planId));
+  adminEl('adminPinTitle').textContent = planId ? 'Show this plan on the TVs?' : 'Put the TVs back on automatic?';
+  adminEl('adminPinPlan').textContent = planId
+    ? adminPlanLabel(plan) || 'Selected plan'
+    : 'The TVs will follow the next upcoming Exchange plan again.';
+  const input = adminEl('adminPinInput');
+  input.value = '';
+  adminEl('adminPinMessage').textContent = '';
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+  setTimeout(() => input.focus(), 50);
+}
+
+function closePinDialog() {
+  const dialog = adminEl('adminPinDialog');
+  adminEl('adminPinInput').value = '';
+  if (dialog?.open) {
+    if (typeof dialog.close === 'function') dialog.close();
+    else dialog.removeAttribute('open');
+  }
+}
+
+async function submitTvPlanChange(event) {
+  event?.preventDefault();
+  const pin = text(adminEl('adminPinInput')?.value);
+  const message = adminEl('adminPinMessage');
+  if (!pin) {
+    message.textContent = 'Enter the PIN.';
+    return;
+  }
+  const planId = admin.pendingTvPlanId || '';
+  const serviceTypeId = text(admin.context?.serviceType?.id) || tvSelection().serviceTypeId;
+  const submit = adminEl('adminPinSubmit');
+  submit.disabled = true;
+  message.textContent = 'Changing the TVs…';
+  try {
+    // The PIN is sent once for this change and never saved on this device.
+    await adminJson('/api/exchange-control', {
+      method: 'POST',
+      headers: { 'x-exchange-pin': pin },
+      body: JSON.stringify({ serviceTypeId, planId })
+    });
+    storageSet(DEVICE_PREVIEW_KEY, null);
+    closePinDialog();
+    await refreshNow();
+    await loadAdminPlans();
+    setAdminMessage(planId ? 'The TVs now show this plan.' : 'The TVs are back on the automatic upcoming plan.', 'success');
+  } catch (error) {
+    message.textContent = error.status === 401 ? 'That PIN is not correct.' : error.message;
+  } finally {
+    submit.disabled = false;
+    adminEl('adminPinInput').value = '';
+  }
+}
+
+function setupAdminTools() {
+  const toolsLink = adminEl('toolsLink');
+  if (toolsLink) {
+    if (adminMode || tvMode) toolsLink.remove();
+    else {
+      const query = new URLSearchParams(location.search);
+      query.set('admin', '1');
+      toolsLink.href = `${location.pathname}?${query}`;
+    }
+  }
+
+  const root = adminEl('adminTools');
+  if (!root) return;
+  if (!adminMode) {
+    root.remove();
+    return;
+  }
+  root.hidden = false;
+
+  const toggle = adminEl('adminToggle');
+  const panel = adminEl('adminPanel');
+  toggle.addEventListener('click', () => {
+    const open = panel.hidden;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    if (open) loadAdminPlans();
+  });
+
+  adminEl('adminPlanSelect').addEventListener('change', (event) => setDevicePreview(event.target.value));
+  adminEl('adminRefreshButton').addEventListener('click', adminRefreshPlanningCenter);
+  adminEl('adminPushButton').addEventListener('click', () => {
+    const preview = devicePreview();
+    if (preview) openPinDialog(preview.planId);
+  });
+  adminEl('adminAutoButton').addEventListener('click', () => openPinDialog(''));
+  adminEl('adminHideButton').addEventListener('click', () => {
+    storageSet(ADMIN_DEVICE_KEY, null);
+    storageSet(DEVICE_PREVIEW_KEY, null);
+    location.reload();
+  });
+  adminEl('adminPinForm').addEventListener('submit', submitTvPlanChange);
+  adminEl('adminPinCancel').addEventListener('click', closePinDialog);
+
+  loadAdminPlans();
 }
 
 setupControllerLink();
 setupScreenMode();
+setupAdminTools();
+// Re-check freshness even if this device loses its own connection.
+setInterval(renderFooter, 15000);
 window.addEventListener('resize', scheduleAutoFit, { passive: true });
 window.addEventListener('orientationchange', scheduleAutoFit, { passive: true });
 window.visualViewport?.addEventListener('resize', scheduleAutoFit, { passive: true });
