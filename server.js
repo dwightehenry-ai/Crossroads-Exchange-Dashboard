@@ -1257,6 +1257,73 @@ function getPlanningCenterRelationshipResource(
   );
 }
 
+/*
+| Exchange message title. Planning Center plan titles are usually blank, so
+| the week's title comes from the order of service:
+|   1. the "Message Title- <name>" item
+|   2. the item under the SERMON BUMPER header (normally the title, e.g. "Ghosted")
+|   3. the plan's own title, if one was typed in Planning Center
+| Placeholders ("Message Title-", "Sermon Bumper") count as not filled in.
+*/
+function cleanExchangeTitleValue(value) {
+  return cleanPlanningCenterText(value)
+    .replace(/^[\s"'“”‘’:|\-–—]+|[\s"'“”‘’:|\-–—]+$/g, "")
+    .trim();
+}
+
+function isExchangeTitlePlaceholder(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return (
+    !normalized ||
+    /^(sermon\s*bumper|message(\s*title)?|sermon|title|tbd|tba)$/.test(normalized)
+  );
+}
+
+function resolveExchangeMessageTitle(planItems = [], plan = null) {
+  const items = Array.isArray(planItems) ? planItems : [];
+
+  for (const item of items) {
+    const match = String(item?.title || "").match(
+      /^\s*message\s*title\s*[:\-–—]?\s*(.*)$/i
+    );
+    if (match) {
+      const value = cleanExchangeTitleValue(match[1]);
+      if (!isExchangeTitlePlaceholder(value)) return value;
+    }
+  }
+
+  const isHeader = (item) =>
+    String(item?.itemType || "").trim().toLowerCase() === "header";
+
+  for (let index = 0; index < items.length; index += 1) {
+    const item = items[index];
+    const title = String(item?.title || "");
+    const bumperMatch = title.match(
+      /^\s*sermon\s*bumper\s*[:\-–—]?\s*(.*)$/i
+    );
+    if (!bumperMatch) continue;
+
+    // "Sermon Bumper - Ghosted" written on the item itself
+    const inline = cleanExchangeTitleValue(bumperMatch[1]);
+    if (!isExchangeTitlePlaceholder(inline)) return inline;
+
+    // Otherwise the item(s) right under the SERMON BUMPER header
+    if (isHeader(item)) {
+      for (
+        let next = index + 1;
+        next < items.length && !isHeader(items[next]);
+        next += 1
+      ) {
+        const value = cleanExchangeTitleValue(items[next]?.title);
+        if (!isExchangeTitlePlaceholder(value)) return value;
+      }
+    }
+  }
+
+  const planTitle = cleanPlanningCenterText(plan?.title || "");
+  return planTitle && planTitle !== "Untitled Plan" ? planTitle : "";
+}
+
 function normalizePlanningCenterItemResource(resource) {
   if (!resource) {
     return null;
@@ -3351,10 +3418,12 @@ function normalizePlanningCenterPlanResource(plan) {
 
   return {
     id: String(plan?.id || ""),
+    // Most Exchange plans have no title in Planning Center. Leave it blank
+    // (never "Untitled Plan") so the screens show nothing instead.
     title:
       attributes.title ||
       attributes.series_title ||
-      "Untitled Plan",
+      "",
     seriesTitle: attributes.series_title || "",
     dates: attributes.dates || "",
     shortDates: attributes.short_dates || "",
@@ -4063,10 +4132,12 @@ app.get("/api/dashboard", async (req, res) => {
             )
           : -1;
 
-        dashboard.header.plan =
-          plan.title && plan.shortDates
-            ? `${plan.title} — ${plan.shortDates}`
-            : plan.title;
+        const exchangeTitle = resolveExchangeMessageTitle(
+          planItems,
+          plan
+        );
+
+        dashboard.header.plan = exchangeTitle;
 
         if (!dashboard.service) {
           dashboard.service = {};
@@ -4156,7 +4227,8 @@ app.get("/api/dashboard", async (req, res) => {
           lastAttemptAt: planningCenterHealth.lastAttemptAt,
           serviceTypeId,
           planId: plan.id,
-          planTitle: plan.title,
+          planTitle: exchangeTitle,
+          messageTitle: exchangeTitle,
           seriesTitle: plan.seriesTitle || "",
           serviceTypeName: selectedServiceType?.name || config.planningCenter?.serviceTypeName || "Exchange Wednesday Service",
           planDate: plan.dates,

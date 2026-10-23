@@ -970,9 +970,17 @@ function formatPlanDate(planningCenter = {}) {
 
 function renderHeader(planningCenter = {}, dashboard = {}) {
   const planDate = formatPlanDate(planningCenter);
-  const planTitle = first(planningCenter.planTitle, dashboard.header?.plan, 'THE EXCHANGE');
+  // Message title from the server (Message Title item, then Sermon Bumper).
+  // When there's no title, show nothing rather than a placeholder.
+  const rawTitle = planningCenter.connected
+    ? text(planningCenter.planTitle)
+    : text(first(dashboard.header?.plan));
+  const planTitle = /^untitled plan$/i.test(rawTitle) ? '' : rawTitle;
   document.querySelectorAll('[data-plan-date]').forEach((el) => { el.textContent = planDate; });
-  document.querySelectorAll('[data-plan-title]').forEach((el) => { el.textContent = planTitle; });
+  document.querySelectorAll('[data-plan-title]').forEach((el) => {
+    el.textContent = planTitle;
+    el.hidden = !planTitle;
+  });
 }
 
 /*
